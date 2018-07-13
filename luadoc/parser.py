@@ -131,7 +131,7 @@ class LuaDocParser:
             raise SyntaxException('@param expect one parameters')
 
     def _parse_treturn(self, params:List[str]):
-        if len(params) > 2:
+        if len(params) >= 2:
             type = self._parse_type(params[0])
             name = params[1]
             desc = ' '.join(params[2:])
@@ -144,7 +144,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            raise SyntaxException('@treturn expect two parameters')
+            raise SyntaxException('@treturn expect at least two parameters (%s)' % str(params))
 
     def _parse_return(self, params:List[str]):
         if len(params) > 1:
@@ -203,7 +203,15 @@ class TreeVisitor:
         else:
             model = LuaModule('unknown')
 
-        model.classes.extend([v for k, v in self._class_map.items()])
+        if model.isClassMod:
+            if len(self._class_map) != 1:
+                SyntaxException('in a @classmod, only one class is allowed')
+
+            lua_class = self._class_map[list(self._class_map.keys())[0]]
+            lua_class.name = model.name
+
+            model.classes.append(lua_class)
+
         model.functions.extend(self._function_list)
         return model
 
