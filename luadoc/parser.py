@@ -203,8 +203,8 @@ class TreeVisitor:
         else:
             model = LuaModule('unknown')
 
-        model.statements.extend([v for k, v in self._class_map.items()])
-        model.statements.extend(self._function_list)
+        model.classes.extend([v for k, v in self._class_map.items()])
+        model.functions.extend(self._function_list)
         return model
 
 
@@ -332,7 +332,9 @@ class TreeVisitor:
 
         if type(node.source) == Name and type(node.name) == Name:
             if node.source.id not in self._class_map:
-                self._class_map[node.source.id] = LuaClass(node.name.id)
+                self._class_map[node.source.id] = LuaClass(node.source.id)
+                if doc_nodes:
+                    self._class_map[node.source.id].methods.append(self._function_list.pop())
                 logging.debug('created %s class', node.source.id)
 
         self.visit(node.source)

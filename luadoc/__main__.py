@@ -18,6 +18,11 @@ def main():
     parser = OptionParser(usage='usage: %prog [options] file|directory',
                           version='%prog ' + luadoc.__version__)
     cli_group = OptionGroup(parser, "CLI Options")
+    cli_group.add_option('-o', '--output',
+                         metavar='F', type='string',
+                         dest='output',
+                         help='output directory',
+                         default='out')
     cli_group.add_option('-s', '--source',
                          metavar='F', type='string',
                          dest='source',
@@ -41,6 +46,13 @@ def main():
                          dest='jobs',
                          help='number of parallel jobs in recursive mode',
                          default=4)
+    cli_group.add_option('--type',
+                         action="append",
+                         type='string',
+                         dest='extensions',
+                         metavar='EXT',
+                         help='file extension to indent (can be repeated) [lua]',
+                         default=['lua'])
     parser.add_option_group(cli_group)
 
 
@@ -81,8 +93,6 @@ def main():
         # process files
         model = FilesProcessor(options.jobs, doc_options).run(filenames)
 
-
-    # render
     print(toPrettyStr(model))
 
 if __name__ == '__main__':

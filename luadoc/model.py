@@ -15,8 +15,8 @@ class LuaTypes(LuaNode):
     FLOAT       = 5
     BOOLEAN     = 6
     FUNCTION    = 7
-    TABLE       = 9
-    USERDATA    = 10
+    TABLE       = 8
+    USERDATA    = 9
 
 
 class LuaType(LuaNode):
@@ -61,6 +61,7 @@ class LuaModule(LuaNode):
     def __init__(self, name:str):
         LuaNode.__init__(self)
         # list of LuaStatement
-        self.statements = []
+        self.classes = []
+        self.functions = []
         self.name = name
         self.isClassMod = False

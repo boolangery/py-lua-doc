@@ -6,7 +6,7 @@ setup(
     version=luadoc.__version__,
     description='A lua ldoc tool in Python !',
     url='https://github.com/boolangery/py-lua-doc',
-    download_url='https://github.com/boolangery/py-lua-style/archive/' + luadoc.__version__ + '.tar.gz',
+    download_url='https://github.com/boolangery/py-lua-doc/archive/' + luadoc.__version__ + '.tar.gz',
     author='Eliott Dumeix',
     author_email='eliott.dumeix@gmail.com',
     license='MIT',
@@ -20,10 +20,21 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6'
     ],
-    install_requires=[],
+    install_requires=[
+        'Jinja2>2.0,<3.0'
+    ],
     entry_points={
         'console_scripts': [
             'luadoc = luadoc.__main__:main'
         ]
-    }
+    },
+    package_data={
+        'luadoc': [
+            'templates/default/*',
+            'templates/vendor/bootstrap/css/*',
+            'templates/vendor/bootstrap/js/*',
+            'templates/vendor/jquery/*',
+        ]
+    },
+    include_package_data=True
 )

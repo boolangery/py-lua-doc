@@ -1,0 +1,17 @@
+<div>
+    <h2>{{ function.name }}</h2>
+    <span>{{ function.short_desc }}</span>
+    <span>{{ function.desc }}</span>
+
+    <h3>Parameters:</h3>
+    <ul>
+        {% for param in function.params -%}
+            <li>
+                <span>{{ param.name }}</span>
+                <span>: {% include "type.html" %} </span>
+                {{ param.desc }}
+            </li>
+        {%- endfor %}
+    </ul>
+
+</div>
