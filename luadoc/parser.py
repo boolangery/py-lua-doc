@@ -70,12 +70,12 @@ class LuaDocParser:
                 long_desc = '\n'.join(self._pending_str)
                 nodes.append(LuaFunction('', short_desc, long_desc, self._pending_param, self._pending_return))
 
-        return nodes
+        return nodes, self._pending_str
 
     def _parse_comment(self, comment:str):
         parts = comment.split()
         if len(parts) > 1:
-            if parts[0] == self._start_symbol:
+            if parts[0].startswith(self._start_symbol):
                 if parts[1].startswith('@'):
                     if parts[1] in self._handlers:
                         return self._handlers[parts[1]](parts[2:])
@@ -267,11 +267,11 @@ class TreeVisitor:
 
     def _process_ldoc(self, ast_node):
         """Sort ldoc nodes by type in map"""
-        ldoc_nodes = self.parser.parse_comments(ast_node)
+        ldoc_nodes, pending_str = self.parser.parse_comments(ast_node)
         for n in ldoc_nodes:
             if type(n) in self._type_handler:
                 self._type_handler[type(n)](n, ast_node)
-        return ldoc_nodes
+        return ldoc_nodes, pending_str
 
     # ####################################################################### #
     # Root Nodes                                                              #
@@ -346,14 +346,31 @@ class TreeVisitor:
         self.visit(node.body)
 
     def visit_Method(self, node):
-        doc_nodes = self._process_ldoc(node)
+        doc_nodes, pending_str = self._process_ldoc(node)
 
         if type(node.source) == Name and type(node.name) == Name:
+            # auto-create class doc model
             if node.source.id not in self._class_map:
                 self._class_map[node.source.id] = LuaClass(node.source.id)
                 if doc_nodes:
                     self._class_map[node.source.id].methods.append(self._function_list.pop())
                 logging.debug('created %s class', node.source.id)
+
+            # auto-create method doc model
+            if not doc_nodes:
+                short_desc = ''
+                desc = ''
+                params = []
+
+                if len(pending_str) > 0:
+                    short_desc = pending_str[0]
+                if len(pending_str) > 1:
+                    desc = ' '.join(pending_str[1:])
+
+                func_model = LuaFunction(node.name.id, short_desc, desc, params)
+
+                if node.source.id in self._class_map:
+                    self._class_map[node.source.id].methods.append(func_model)
 
         self.visit(node.source)
         self.visit(node.args)
