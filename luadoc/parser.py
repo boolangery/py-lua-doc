@@ -25,13 +25,14 @@ class LuaDocParser:
         self._pending_return = []
         self._pending_function = []
         self._handlers = {
-            '@module': self._parse_module,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
-            '@tparam': self._parse_tparam,
+            '@module': self._parse_module,
             '@param': self._parse_param,
-            '@treturn': self._parse_treturn,
             '@return': self._parse_return,
+            '@tparam': self._parse_tparam,
+            '@treturn': self._parse_treturn,
+            '@type': self._parse_class,
         }
         self._param_type_str_to_lua_types = {
             'string': LuaTypes.STRING,
@@ -201,7 +202,7 @@ class TreeVisitor:
             for n in node:
                 self.visit(n)
 
-    def getModel(self):
+    def get_model(self):
         """ Retrieve the final doc model.
         """
         if self._module:
@@ -217,6 +218,9 @@ class TreeVisitor:
             lua_class.name = model.name
 
             model.classes.append(lua_class)
+        else:
+            # add all classes to module
+            model.classes.extend(self._class_map.values())
 
         model.functions.extend(self._function_list)
         return model
@@ -285,12 +289,12 @@ class TreeVisitor:
     # Assignments                                                             #
     # ####################################################################### #
     def visit_Assign(self, node):
+        self._process_ldoc(node)
         self.visit(node.targets)
         self.visit(node.values)
 
     def visit_LocalAssign(self, node):
         self._process_ldoc(node)
-
         self.visit(node.targets)
         self.visit(node.values)
 
@@ -412,5 +416,5 @@ class DocParser:
 
         visitor = TreeVisitor(self._doc_options)
         visitor.visit(tree)
-        return visitor.getModel()
+        return visitor.get_model()
 

@@ -62,7 +62,6 @@ def main():
                          default=default.comment_prefix)
     parser.add_option_group(cli_group)
 
-
     (options, args) = parser.parse_args()
 
     # generate config
@@ -82,6 +81,7 @@ def main():
 
     # create doc options
     doc_options = DocOptions()
+    doc_options.comment_prefix = options.comment_prefix
 
     # build a filename list or use source (-s)
     if options.source:
