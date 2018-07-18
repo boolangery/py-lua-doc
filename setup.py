@@ -21,6 +21,7 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     install_requires=[
+        'luaparser>=2.0.2,<2.1',
         'Jinja2>2.0,<3.0'
     ],
     entry_points={
