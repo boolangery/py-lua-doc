@@ -5,6 +5,11 @@ from luadoc.model import *
 from typing import List
 
 
+class DocOptions:
+    def __init__(self):
+        self.comment_prefix = '---'
+
+
 class SyntaxException(Exception):
     pass
 
@@ -12,7 +17,7 @@ class SyntaxException(Exception):
 class LuaDocParser:
     """ Lua doc style parser
     """
-    def __init__(self, start_symbol: str='---'):
+    def __init__(self, start_symbol: str):
         self._start_symbol = start_symbol
         # list of string with no tag
         self._pending_str = []
@@ -163,8 +168,9 @@ class LuaDocParser:
 
 
 class TreeVisitor:
-    def __init__(self, options):
-        self.parser = LuaDocParser()
+    def __init__(self, doc_options):
+        self._doc_options = doc_options
+        self.parser = LuaDocParser(self._doc_options.comment_prefix)
 
         self._class_map = {}
         self._function_list = []
@@ -404,7 +410,7 @@ class DocParser:
             logging.error(str(e))
             return input
 
-        visitor = TreeVisitor(None)
+        visitor = TreeVisitor(self._doc_options)
         visitor.visit(tree)
         return visitor.getModel()
 

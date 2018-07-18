@@ -3,10 +3,8 @@ import sys
 import time
 import json
 import concurrent.futures
-from luadoc.parser import DocParser
+from luadoc.parser import DocParser, DocOptions
 
-class DocOptions:
-    pass
 
 class Configuration:
     def load(self, filepath):

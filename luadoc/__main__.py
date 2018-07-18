@@ -4,7 +4,7 @@ import os
 import logging
 from optparse import OptionParser, OptionGroup
 import luadoc
-from luadoc.core import FilesProcessor, Configuration, DocOptions
+from luadoc import FilesProcessor, Configuration, DocOptions
 from luadoc.printers import toPrettyStr
 
 
@@ -14,6 +14,8 @@ def abort(msg):
 
 
 def main():
+    default = DocOptions()
+
     # parse options:
     parser = OptionParser(usage='usage: %prog [options] file|directory',
                           version='%prog ' + luadoc.__version__)
@@ -24,7 +26,7 @@ def main():
                          help='output directory',
                          default='out')
     cli_group.add_option('-s', '--source',
-                         metavar='F', type='string',
+                         metavar='S', type='string',
                          dest='source',
                          help='source passed in a string')
     cli_group.add_option('--config',
@@ -53,6 +55,11 @@ def main():
                          metavar='EXT',
                          help='file extension to indent (can be repeated) [lua]',
                          default=['lua'])
+    cli_group.add_option('-p', '--prefix',
+                         metavar='S', type='string',
+                         dest='comment_prefix',
+                         help='the comment prefix used to recognize luadoc comments',
+                         default=default.comment_prefix)
     parser.add_option_group(cli_group)
 
 
