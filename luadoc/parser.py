@@ -248,6 +248,9 @@ class TreeVisitor:
             if ldoc_node.name == '':
                 ldoc_node.name = ast_node.name.id
 
+        # check consistency
+        self._check_function_args(ldoc_node, ast_node)
+
         # try to register this function in a class
         class_name = ast_node.source.id
 
@@ -272,6 +275,25 @@ class TreeVisitor:
             if type(n) in self._type_handler:
                 self._type_handler[type(n)](n, ast_node)
         return ldoc_nodes, pending_str
+
+    # ####################################################################### #
+    # Checking doc consistency                                                #
+    # ####################################################################### #
+    def _check_function_args(self, func_doc_node, func_ast_node):
+        # only check if there are too many documented node and consistency
+        if len(func_doc_node.params) > len(func_ast_node.args):
+            raise SyntaxException('function: "%s": too many documented params: %s'
+                                  % (func_doc_node.name,
+                                     ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]])))
+
+        args_map = zip(func_doc_node.params, func_ast_node.args)
+
+        for doc, ast in args_map:
+            if doc.name != ast.id:
+                raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
+                                      % (func_doc_node.name, doc.name, ast.id))
+
+        pass
 
     # ####################################################################### #
     # Root Nodes                                                              #
@@ -353,7 +375,9 @@ class TreeVisitor:
             if node.source.id not in self._class_map:
                 self._class_map[node.source.id] = LuaClass(node.source.id)
                 if doc_nodes:
-                    self._class_map[node.source.id].methods.append(self._function_list.pop())
+                    func_model = self._function_list.pop()
+                    self._check_function_args(func_model, node)
+                    self._class_map[node.source.id].methods.append(func_model)
                 logging.debug('created %s class', node.source.id)
 
             # auto-create method doc model
@@ -368,6 +392,7 @@ class TreeVisitor:
                     desc = ' '.join(pending_str[1:])
 
                 func_model = LuaFunction(node.name.id, short_desc, desc, params)
+                self._check_function_args(func_model, node)
 
                 if node.source.id in self._class_map:
                     self._class_map[node.source.id].methods.append(func_model)
@@ -385,10 +410,6 @@ class TreeVisitor:
         self.visit(node.idx)
 
     def visit_Call(self, node):
-        #if type(node.func) == Name and node.func.id == 'class':
-        #    self._class_map[self._last_local_assign] = LuaClass(self._last_local_assign)
-        #    logging.debug('created %s class', self._last_local_assign)
-
         self._process_ldoc(node)
         self.visit(node.func)
         self.visit(node.args)
