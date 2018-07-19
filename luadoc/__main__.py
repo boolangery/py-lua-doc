@@ -48,6 +48,11 @@ def main():
                          dest='jobs',
                          help='number of parallel jobs in recursive mode',
                          default=4)
+    cli_group.add_option('-m', '--model',
+                         action='store_true',
+                         dest='model',
+                         help='print documentation model',
+                         default=False)
     cli_group.add_option('--type',
                          action="append",
                          type='string',
@@ -100,7 +105,12 @@ def main():
         # process files
         model = FilesProcessor(options.jobs, doc_options).run(filenames)
 
+    # render
+    # if options.model:
     print(toPrettyStr(model))
+    # else:
+    #     from luadoc.renderers import HtmlRenderer, HtmlTemplate
+    #     HtmlRenderer().render(model, HtmlTemplate.DEFAULT, options.output)
 
 if __name__ == '__main__':
     main()

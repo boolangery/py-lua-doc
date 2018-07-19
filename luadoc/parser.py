@@ -27,9 +27,11 @@ class LuaDocParser:
         self._handlers = {
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
+            '@int': self._parse_int_param,
             '@module': self._parse_module,
             '@param': self._parse_param,
             '@return': self._parse_return,
+            '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
             '@treturn': self._parse_treturn,
             '@type': self._parse_class,
@@ -135,6 +137,14 @@ class LuaDocParser:
                 self._pending_param.append(param)
         else:
             raise SyntaxException('@param expect one parameters')
+
+    def _parse_string_param(self, params:List[str]):
+        params.insert(0, 'string')
+        self._parse_tparam(params)
+
+    def _parse_int_param(self, params:List[str]):
+        params.insert(0, 'int')
+        self._parse_tparam(params)
 
     def _parse_treturn(self, params:List[str]):
         if len(params) >= 2:
