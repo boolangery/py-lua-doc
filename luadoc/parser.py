@@ -33,6 +33,7 @@ class LuaDocParser:
             '@return': self._parse_return,
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
+            '@tparam[opt]': self._parse_tparam_opt,
             '@treturn': self._parse_treturn,
             '@type': self._parse_class,
         }
@@ -111,13 +112,13 @@ class LuaDocParser:
             return LuaType(self._param_type_str_to_lua_types[type_str])
         return LuaType(LuaTypes.CUSTOM, type_str)
 
-    def _parse_tparam(self, params:List[str]):
+    def _parse_tparam(self, params:List[str], is_opt:bool=False):
         if len(params) > 2:
             type = self._parse_type(params[0])
             name = params[1]
             desc = ' '.join(params[2:])
 
-            param = LuaParam(name, desc, type)
+            param = LuaParam(name, desc, type, is_opt)
 
             # if function pending, add param to it
             if self._pending_function:
@@ -126,6 +127,9 @@ class LuaDocParser:
                 self._pending_param.append(param)
         else:
             raise SyntaxException('@tparam expect two parameters')
+
+    def _parse_tparam_opt(self, params:List[str]):
+        self._parse_tparam(params, True)
 
     def _parse_param(self, params:List[str]):
         if len(params) > 1:
@@ -299,9 +303,10 @@ class TreeVisitor:
         args_map = zip(func_doc_node.params, func_ast_node.args)
 
         for doc, ast in args_map:
-            if doc.name != ast.id:
-                raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
-                                      % (func_doc_node.name, doc.name, ast.id))
+            if type(ast) != Varargs:
+                if doc.name != ast.id:
+                    raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
+                                          % (func_doc_node.name, doc.name, ast.id))
 
         pass
 
