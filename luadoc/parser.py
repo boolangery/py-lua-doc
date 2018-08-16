@@ -24,9 +24,12 @@ class LuaDocParser:
         self._pending_param = []
         self._pending_return = []
         self._pending_function = []
+        self._pending_qualifiers = []  # @virtual, @abstract, @deprecated
         self._handlers = {
+            '@abstract': self._parse_abstract,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
+            '@deprecated': self._parse_deprecated,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
             '@param': self._parse_param,
@@ -36,6 +39,7 @@ class LuaDocParser:
             '@tparam[opt]': self._parse_tparam_opt,
             '@treturn': self._parse_treturn,
             '@type': self._parse_class,
+            '@virtual': self._parse_virtual,
         }
         self._param_type_str_to_lua_types = {
             'string': LuaTypes.STRING,
@@ -72,6 +76,18 @@ class LuaDocParser:
                 short_desc = self._pending_str.pop(0)
                 long_desc = '\n'.join(self._pending_str)
                 nodes.append(LuaFunction('', short_desc, long_desc, self._pending_param, self._pending_return))
+
+        # handle function pending elements
+        if nodes and type(nodes[-1]) is LuaFunction:
+            # handle pending qualifiers
+            if self._pending_qualifiers:
+                for qualifier in self._pending_qualifiers:
+                    if type(qualifier) is LuaVirtualQualifier:
+                        nodes[-1].is_virtual = True
+                    elif type(qualifier) is LuaAbstractQualifier:
+                        nodes[-1].is_abstract = True
+                    else:
+                        nodes[-1].is_deprecated = True
 
         return nodes, self._pending_str
 
@@ -181,6 +197,23 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect one parameter')
 
+    def _parse_virtual(self, params:List[str]):
+        if self._pending_function:
+            self._pending_function[-1].is_virtual = True
+        else:
+            self._pending_qualifiers.append(LuaVirtualQualifier())
+
+    def _parse_abstract(self, params:List[str]):
+        if self._pending_function:
+            self._pending_function[-1].is_abstract = True
+        else:
+            self._pending_qualifiers.append(LuaAbstractQualifier())
+
+    def _parse_deprecated(self, params:List[str]):
+        if self._pending_function:
+            self._pending_function[-1].is_deprecated = True
+        else:
+            self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
 class TreeVisitor:
     def __init__(self, doc_options):
