@@ -25,6 +25,8 @@ class LuaDocParser:
         self._pending_return = []
         self._pending_function = []
         self._pending_qualifiers = []  # @virtual, @abstract, @deprecated
+        self._usage_in_progress = False
+        self._usage_str = []
         self._handlers = {
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
@@ -39,6 +41,7 @@ class LuaDocParser:
             '@tparam[opt]': self._parse_tparam_opt,
             '@treturn': self._parse_treturn,
             '@type': self._parse_class,
+            '@usage': self._parse_usage,
             '@virtual': self._parse_virtual,
         }
         self._param_type_str_to_lua_types = {
@@ -62,6 +65,9 @@ class LuaDocParser:
         self._pending_param = []
         self._pending_function = []
         self._pending_return = []
+        self._pending_qualifiers = []
+        self._usage_in_progress = False
+        self._usage_str = []
 
         nodes = []
         for comment in comments:
@@ -70,10 +76,13 @@ class LuaDocParser:
                 nodes.append(node)
 
         # handle pending nodes
-        if self._pending_param or self._pending_return:
+        if self._pending_param or self._pending_return or self._pending_qualifiers:
             # methods
             if type(ast_node) == Method:
-                short_desc = self._pending_str.pop(0)
+                if self._pending_str:
+                    short_desc = self._pending_str.pop(0)
+                else:
+                    short_desc = ''
                 long_desc = '\n'.join(self._pending_str)
                 nodes.append(LuaFunction('', short_desc, long_desc, self._pending_param, self._pending_return))
 
@@ -89,18 +98,24 @@ class LuaDocParser:
                     else:
                         nodes[-1].is_deprecated = True
 
+            # handle pending usage
+            if self._usage_in_progress:
+                nodes[-1].usage = '\n'.join(self._usage_str)
+
         return nodes, self._pending_str
 
     def _parse_comment(self, comment:str):
         parts = comment.split()
-        if len(parts) > 1:
+        if parts:
             if parts[0].startswith(self._start_symbol):
-                if parts[1].startswith('@'):
+                if len(parts) > 1 and parts[1].startswith('@'):
                     if parts[1] in self._handlers:
                         return self._handlers[parts[1]](parts[2:])
-                else:
+                elif not self._usage_in_progress:
                     # its just a string
                     self._pending_str.append(' '.join(parts[1:]))
+                else:
+                    self._usage_str.append(comment[len(self._start_symbol)+1:])
         return None
 
     def _parse_class(self, params:List[str]):
@@ -108,6 +123,9 @@ class LuaDocParser:
             return LuaClass(params[0], params[0])
         else:
             raise SyntaxException('@class must be followed by a class name')
+
+    def _parse_usage(self, params:List[str]):
+        self._usage_in_progress = True
 
     def _parse_module(self, params:List[str]):
         if len(params) > 0:
@@ -119,6 +137,12 @@ class LuaDocParser:
         if len(params) > 0:
             module = LuaModule(params[0])
             module.isClassMod = True
+            module.desc = '\n'.join(self._pending_str)
+
+            if self._usage_in_progress:
+                module.usage = '\n'.join(self._usage_str)
+                self._usage_in_progress = False
+
             return module
         else:
             raise SyntaxException('@classmod must be followed by a module name')
@@ -263,6 +287,8 @@ class TreeVisitor:
 
             lua_class = self._class_map[list(self._class_map.keys())[0]]
             lua_class.name = model.name
+            lua_class.desc = model.desc
+            lua_class.usage = model.usage
 
             model.classes.append(lua_class)
         else:

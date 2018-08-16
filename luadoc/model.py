@@ -50,6 +50,7 @@ class LuaFunction(LuaNode):
         self.desc = desc
         self.params = params
         self.returns = returns
+        self.usage = ''
         self.is_virtual = False
         self.is_abstract = False
         self.is_deprecated = False
@@ -61,6 +62,8 @@ class LuaClass(LuaNode):
         self.name = name
         self.name_in_source = name_in_source
         self.methods = []
+        self.desc = ''
+        self.usage = ''
 
 
 class LuaModule(LuaNode):
@@ -71,6 +74,8 @@ class LuaModule(LuaNode):
         self.functions = []
         self.name = name
         self.isClassMod = False
+        self.desc = ''
+        self.usage = ''
 
 
 class LuaQualifier:
