@@ -193,10 +193,9 @@ class LuaDocParser:
     def _parse_treturn(self, params:List[str]):
         if len(params) >= 2:
             type = self._parse_type(params[0])
-            name = params[1]
-            desc = ' '.join(params[2:])
+            desc = ' '.join(params[1:])
 
-            param = LuaReturn(name, desc, type)
+            param = LuaReturn(desc, type)
 
             # if function pending, add param to it
             if self._pending_function:
@@ -208,10 +207,9 @@ class LuaDocParser:
 
     def _parse_return(self, params:List[str]):
         if len(params) > 1:
-            name = params[0]
-            desc = ' '.join(params[1:])
+            desc = ' '.join(params[0:])
 
-            param = LuaReturn(name, desc)
+            param = LuaReturn(desc)
 
             # if function pending, add param to it
             if self._pending_function:

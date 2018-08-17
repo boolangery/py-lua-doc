@@ -36,8 +36,7 @@ class LuaParam(LuaNode):
 
 
 class LuaReturn(LuaNode):
-    def __init__(self, name:str, desc:str, type:LuaTypes=LuaType(LuaTypes.UNKNOWN)):
-        self.name = name
+    def __init__(self, desc:str, type:LuaTypes=LuaType(LuaTypes.UNKNOWN)):
         self.desc = desc
         self.type = type
 
