@@ -246,6 +246,7 @@ class LuaDocParser:
         else:
             self._pending_qualifiers.append(LuaPrivateQualifier())
 
+
 class TreeVisitor:
     def __init__(self, doc_options):
         self._doc_options = doc_options
@@ -290,7 +291,7 @@ class TreeVisitor:
 
         if model.isClassMod:
             if len(self._class_map) != 1:
-                SyntaxException('in a @classmod, only one class is allowed')
+                raise SyntaxException('in a @classmod, only one class is allowed')
 
             lua_class = self._class_map[list(self._class_map.keys())[0]]
             lua_class.name = model.name
