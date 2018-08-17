@@ -35,6 +35,7 @@ class LuaDocParser:
             '@int': self._parse_int_param,
             '@module': self._parse_module,
             '@param': self._parse_param,
+            '@private': self._parse_private,
             '@return': self._parse_return,
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
@@ -95,8 +96,10 @@ class LuaDocParser:
                         nodes[-1].is_virtual = True
                     elif type(qualifier) is LuaAbstractQualifier:
                         nodes[-1].is_abstract = True
-                    else:
+                    elif type(qualifier) is LuaDeprecatedQualifier:
                         nodes[-1].is_deprecated = True
+                    else:
+                        nodes[-1].visibility = LuaVisibility.PRIVATE
 
             # handle pending usage
             if self._usage_in_progress:
@@ -236,6 +239,12 @@ class LuaDocParser:
             self._pending_function[-1].is_deprecated = True
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
+
+    def _parse_private(self, params:List[str]):
+        if self._pending_function:
+            self._pending_function[-1].visibility = LuaVisibility.PRIVATE
+        else:
+            self._pending_qualifiers.append(LuaPrivateQualifier())
 
 class TreeVisitor:
     def __init__(self, doc_options):

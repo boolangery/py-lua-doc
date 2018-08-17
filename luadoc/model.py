@@ -7,16 +7,22 @@ class LuaNode:
 
 
 class LuaTypes(LuaNode):
-    UNKNOWN     = 0
-    CUSTOM      = 1
-    STRING      = 2
-    NUMBER      = 3
-    INTEGER     = 4
-    FLOAT       = 5
-    BOOLEAN     = 6
-    FUNCTION    = 7
-    TABLE       = 8
-    USERDATA    = 9
+    UNKNOWN = 0
+    CUSTOM = 1
+    STRING = 2
+    NUMBER = 3
+    INTEGER = 4
+    FLOAT = 5
+    BOOLEAN = 6
+    FUNCTION = 7
+    TABLE = 8
+    USERDATA = 9
+
+
+class LuaVisibility(LuaNode):
+    PUBLIC = 0
+    PROTECTED = 1
+    PRIVATE = 2
 
 
 class LuaType(LuaNode):
@@ -53,6 +59,7 @@ class LuaFunction(LuaNode):
         self.is_virtual = False
         self.is_abstract = False
         self.is_deprecated = False
+        self.visibility = LuaVisibility.PUBLIC
 
 
 class LuaClass(LuaNode):
@@ -92,5 +99,10 @@ class LuaAbstractQualifier(LuaQualifier):
 
 
 class LuaDeprecatedQualifier(LuaQualifier):
+    def __init__(self):
+        LuaQualifier.__init__(self)
+
+
+class LuaPrivateQualifier(LuaQualifier):
     def __init__(self):
         LuaQualifier.__init__(self)
