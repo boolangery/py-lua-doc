@@ -1,12 +1,22 @@
 from setuptools import setup
-import luadoc
+
+
+ver_dic = {}
+version_file = open("luadoc/version.py")
+try:
+    version_file_contents = version_file.read()
+finally:
+    version_file.close()
+
+exec(compile(version_file_contents, "luadoc/version.py", 'exec'), ver_dic)
+
 
 setup(
     name='luadoc',
-    version=luadoc.__version__,
+    version=ver_dic["__version__"],
     description='A lua ldoc tool in Python !',
     url='https://github.com/boolangery/py-lua-doc',
-    download_url='https://github.com/boolangery/py-lua-doc/archive/' + luadoc.__version__ + '.tar.gz',
+    download_url='https://github.com/boolangery/py-lua-doc/archive/' + ver_dic["__version__"] + '.tar.gz',
     author='Eliott Dumeix',
     author_email='eliott.dumeix@gmail.com',
     license='MIT',
