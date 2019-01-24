@@ -1,12 +1,11 @@
 from enum import Enum
-from typing import List
 
 
 class LuaNode:
     pass
 
 
-class LuaTypes(LuaNode):
+class LuaTypes(Enum):
     UNKNOWN = 0
     CUSTOM = 1
     STRING = 2
@@ -26,30 +25,36 @@ class LuaVisibility(LuaNode):
 
 
 class LuaType(LuaNode):
-    def __init__(self, type: LuaTypes, name_if_custom: str=''):
-        self.type = type
+    def __init__(self, lua_type: LuaTypes, name_if_custom: str = ''):
+        self.type = lua_type
         self.name_if_custom = name_if_custom
 
 
 class LuaParam(LuaNode):
-    def __init__(self, name:str, desc:str,
-                 type:LuaTypes=LuaType(LuaTypes.UNKNOWN),
-                 is_opt:bool=False):
+    def __init__(self, name: str, desc: str,
+                 lua_type: LuaType = LuaType(LuaTypes.UNKNOWN),
+                 is_opt: bool = False):
         self.name = name
         self.desc = desc
-        self.type = type
+        self.type = lua_type
         self.is_opt = is_opt
 
 
 class LuaReturn(LuaNode):
-    def __init__(self, desc:str, type:LuaTypes=LuaType(LuaTypes.UNKNOWN)):
+    def __init__(self, desc: str, lua_type: LuaType = LuaType(LuaTypes.UNKNOWN)):
         self.desc = desc
-        self.type = type
+        self.type = lua_type
 
 
 class LuaFunction(LuaNode):
-    def __init__(self, name:str, short_desc:str ='', desc:str='', params:List[LuaParam]=[], returns=[]):
+    def __init__(self, name: str, short_desc: str = '', desc: str = '', params=None, returns=None):
         LuaNode.__init__(self)
+
+        if returns is None:
+            returns = []
+        if params is None:
+            params = []
+
         self.name = name
         self.short_desc = short_desc
         self.desc = desc
@@ -63,7 +68,7 @@ class LuaFunction(LuaNode):
 
 
 class LuaClass(LuaNode):
-    def __init__(self, name:str='unknown', name_in_source:str=''):
+    def __init__(self, name: str = 'unknown', name_in_source: str = ''):
         LuaNode.__init__(self)
         self.name = name
         self.name_in_source = name_in_source
@@ -73,7 +78,7 @@ class LuaClass(LuaNode):
 
 
 class LuaModule(LuaNode):
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         LuaNode.__init__(self)
         # list of LuaStatement
         self.classes = []

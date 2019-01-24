@@ -14,13 +14,16 @@ def _qualname(obj):
     """Get the fully-qualified name of an object (including module)."""
     return obj.__module__ + '.' + obj.__qualname__
 
+
 def _declaring_class(obj):
     """Get the name of the class that declared an object."""
     name = _qualname(obj)
     return name[:name.rfind('.')]
 
+
 # Stores the actual visitor methods
 _methods = {}
+
 
 # Delegating visitor implementation
 def _visitor_impl(self, arg):
@@ -77,15 +80,19 @@ class PythonStyleVisitor:
         if isinstance(object, list):
             itemCount = len(object)
             res += '[] ' + str(itemCount) + ' '
-            if itemCount > 1 : res += 'items'
-            else             : res += 'item'
+            if itemCount > 1:
+                res += 'items'
+            else:
+                res += 'item'
         elif isinstance(object, LuaNode):
             if isList:
                 return '{} 1 key'
             keyCount = len([attr for attr in object.__dict__.keys() if not attr.startswith("_")])
             res += '{} ' + str(keyCount) + ' '
-            if keyCount > 1 : res += 'keys'
-            else            : res += 'key'
+            if keyCount > 1:
+                res += 'keys'
+            else:
+                res += 'key'
         else:
             res += '[unknow]'
         return res

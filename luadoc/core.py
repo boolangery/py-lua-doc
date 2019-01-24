@@ -7,21 +7,23 @@ from luadoc.parser import DocParser, DocOptions
 
 
 class Configuration:
-    def load(self, filepath):
-        with open(filepath) as json_data_file:
+    @staticmethod
+    def load(file_path: str):
+        with open(file_path) as json_data_file:
             data = json.load(json_data_file)
         options = DocOptions()
         options.__dict__ = data
         return options
 
-    def generate_default(self, filepath):
-        with open(filepath, 'w') as json_data_file:
+    @staticmethod
+    def generate_default(file_path: str):
+        with open(file_path, 'w') as json_data_file:
             json_data_file.write(
                 json.dumps(DocOptions().__dict__,
                            sort_keys=True,
                            indent=4,
                            separators=(',', ': ')))
-        print('Config. file generated in: ' + os.path.abspath(filepath))
+        print('Config. file generated in: ' + os.path.abspath(file_path))
 
 
 class FilesProcessor:
@@ -29,10 +31,10 @@ class FilesProcessor:
         self._jobs = jobs
         self._doc_options = doc_options
 
-    def _process_one(self, filepath):
+    def _process_one(self, file_path):
         """Process one file.
         """
-        with open(filepath) as file:
+        with open(file_path) as file:
             file_content = file.read()
 
         doc_parser = DocParser(self._doc_options)

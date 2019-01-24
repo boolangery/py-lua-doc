@@ -17,6 +17,7 @@ class SyntaxException(Exception):
 class LuaDocParser:
     """ Lua doc style parser
     """
+
     def __init__(self, start_symbol: str):
         self._start_symbol = start_symbol
         # list of string with no tag
@@ -107,7 +108,7 @@ class LuaDocParser:
 
         return nodes, self._pending_str
 
-    def _parse_comment(self, comment:str):
+    def _parse_comment(self, comment: str):
         parts = comment.split()
         if parts:
             if parts[0].startswith(self._start_symbol):
@@ -118,25 +119,25 @@ class LuaDocParser:
                     # its just a string
                     self._pending_str.append(' '.join(parts[1:]))
                 else:
-                    self._usage_str.append(comment[len(self._start_symbol)+1:])
+                    self._usage_str.append(comment[len(self._start_symbol) + 1:])
         return None
 
-    def _parse_class(self, params:List[str]):
+    def _parse_class(self, params: List[str]):
         if len(params) > 0:
             return LuaClass(params[0], params[0])
         else:
             raise SyntaxException('@class must be followed by a class name')
 
-    def _parse_usage(self, params:List[str]):
+    def _parse_usage(self, params: List[str]):
         self._usage_in_progress = True
 
-    def _parse_module(self, params:List[str]):
+    def _parse_module(self, params: List[str]):
         if len(params) > 0:
             return LuaModule(params[0])
         else:
             raise SyntaxException('@module must be followed by a module name')
 
-    def _parse_class_mod(self, params:List[str]):
+    def _parse_class_mod(self, params: List[str]) -> LuaModule:
         if len(params) > 0:
             module = LuaModule(params[0])
             module.isClassMod = True
@@ -150,18 +151,18 @@ class LuaDocParser:
         else:
             raise SyntaxException('@classmod must be followed by a module name')
 
-    def _parse_type(self, type_str:str):
+    def _parse_type(self, type_str: str):
         if type_str in self._param_type_str_to_lua_types:
             return LuaType(self._param_type_str_to_lua_types[type_str])
         return LuaType(LuaTypes.CUSTOM, type_str)
 
-    def _parse_tparam(self, params:List[str], is_opt:bool=False):
+    def _parse_tparam(self, params: List[str], is_opt: bool = False):
         if len(params) > 2:
-            type = self._parse_type(params[0])
+            lua_type = self._parse_type(params[0])
             name = params[1]
             desc = ' '.join(params[2:])
 
-            param = LuaParam(name, desc, type, is_opt)
+            param = LuaParam(name, desc, lua_type, is_opt)
 
             # if function pending, add param to it
             if self._pending_function:
@@ -171,10 +172,10 @@ class LuaDocParser:
         else:
             raise SyntaxException('@tparam expect two parameters')
 
-    def _parse_tparam_opt(self, params:List[str]):
+    def _parse_tparam_opt(self, params: List[str]):
         self._parse_tparam(params, True)
 
-    def _parse_param(self, params:List[str]):
+    def _parse_param(self, params: List[str]):
         if len(params) > 1:
             param = LuaParam(params[0], ' '.join(params[1:]))
             # if function pending, add param to it
@@ -185,20 +186,20 @@ class LuaDocParser:
         else:
             raise SyntaxException('@param expect one parameters')
 
-    def _parse_string_param(self, params:List[str]):
+    def _parse_string_param(self, params: List[str]):
         params.insert(0, 'string')
         self._parse_tparam(params)
 
-    def _parse_int_param(self, params:List[str]):
+    def _parse_int_param(self, params: List[str]):
         params.insert(0, 'int')
         self._parse_tparam(params)
 
-    def _parse_treturn(self, params:List[str]):
+    def _parse_treturn(self, params: List[str]):
         if len(params) >= 2:
-            type = self._parse_type(params[0])
+            lua_type = self._parse_type(params[0])
             desc = ' '.join(params[1:])
 
-            param = LuaReturn(desc, type)
+            param = LuaReturn(desc, lua_type)
 
             # if function pending, add param to it
             if self._pending_function:
@@ -208,7 +209,7 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect at least two parameters (%s)' % str(params))
 
-    def _parse_return(self, params:List[str]):
+    def _parse_return(self, params: List[str]):
         if len(params) > 1:
             desc = ' '.join(params[0:])
 
@@ -222,25 +223,25 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect one parameter')
 
-    def _parse_virtual(self, params:List[str]):
+    def _parse_virtual(self, params: List[str]):
         if self._pending_function:
             self._pending_function[-1].is_virtual = True
         else:
             self._pending_qualifiers.append(LuaVirtualQualifier())
 
-    def _parse_abstract(self, params:List[str]):
+    def _parse_abstract(self, params: List[str]):
         if self._pending_function:
             self._pending_function[-1].is_abstract = True
         else:
             self._pending_qualifiers.append(LuaAbstractQualifier())
 
-    def _parse_deprecated(self, params:List[str]):
+    def _parse_deprecated(self, params: List[str]):
         if self._pending_function:
             self._pending_function[-1].is_deprecated = True
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
-    def _parse_private(self, params:List[str]):
+    def _parse_private(self, params: List[str]):
         if self._pending_function:
             self._pending_function[-1].visibility = LuaVisibility.PRIVATE
         else:
@@ -305,7 +306,6 @@ class TreeVisitor:
 
         model.functions.extend(self._function_list)
         return model
-
 
     # ####################################################################### #
     # Sorting and adding custom data from ast into Ldoc Nodes                 #
@@ -537,4 +537,3 @@ class DocParser:
         visitor = TreeVisitor(self._doc_options)
         visitor.visit(tree)
         return visitor.get_model()
-
