@@ -21,11 +21,6 @@ def main():
     parser = OptionParser(usage='usage: %prog [options] file|directory',
                           version='%prog ' + luadoc.__version__)
     cli_group = OptionGroup(parser, "CLI Options")
-    cli_group.add_option('-o', '--output',
-                         metavar='F', type='string',
-                         dest='output',
-                         help='output directory',
-                         default='out')
     cli_group.add_option('-s', '--source',
                          metavar='S', type='string',
                          dest='source',
