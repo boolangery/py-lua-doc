@@ -2,7 +2,7 @@ import logging
 from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
-from typing import List
+from typing import List, Dict, cast
 
 
 class DocOptions:
@@ -19,16 +19,16 @@ class LuaDocParser:
     """
 
     def __init__(self, start_symbol: str):
-        self._start_symbol = start_symbol
+        self._start_symbol: str = start_symbol
         # list of string with no tag
         self._pending_str: List[str] = []
         self._pending_param: List[LuaParam] = []
         self._pending_return: List[LuaReturn] = []
         self._pending_function: List[LuaFunction] = []
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
-        self._usage_in_progress = False
-        self._usage_str = []
-        self._handlers = {
+        self._usage_in_progress: bool = False
+        self._usage_str: List[str] = []
+        self._handlers: Dict[str, any] = {
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
@@ -60,7 +60,7 @@ class LuaDocParser:
             'table': LuaTypes.TABLE,
         }
 
-    def parse_comments(self, ast_node):
+    def parse_comments(self, ast_node: Node):
         comments = [c.s for c in ast_node.comments]
 
         # reset pending list
@@ -72,7 +72,7 @@ class LuaDocParser:
         self._usage_in_progress = False
         self._usage_str = []
 
-        nodes = []
+        nodes: List[LuaNode] = []
         for comment in comments:
             node = self._parse_comment(comment)
             if node is not None:
@@ -91,24 +91,26 @@ class LuaDocParser:
 
         # handle function pending elements
         if nodes and type(nodes[-1]) is LuaFunction:
+            func: LuaFunction = cast(LuaFunction, nodes[-1])
+
             # handle pending qualifiers
             if self._pending_qualifiers:
                 for qualifier in self._pending_qualifiers:
                     if type(qualifier) is LuaVirtualQualifier:
-                        nodes[-1].is_virtual = True
+                        cast(LuaVirtualQualifier, nodes[-1]).is_virtual = True
                     elif type(qualifier) is LuaAbstractQualifier:
-                        nodes[-1].is_abstract = True
+                        cast(LuaAbstractQualifier, nodes[-1]).is_abstract = True
                     elif type(qualifier) is LuaDeprecatedQualifier:
-                        nodes[-1].is_deprecated = True
+                        cast(LuaDeprecatedQualifier, nodes[-1]).is_deprecated = True
                     else:
-                        nodes[-1].visibility = LuaVisibility.PRIVATE
+                        func.visibility = LuaVisibility.PRIVATE
 
             # handle pending usage
             if self._usage_in_progress:
-                nodes[-1].usage = '\n'.join(self._usage_str)
+                func.usage = '\n'.join(self._usage_str)
 
             if self._pending_param:
-                nodes[-1].params.extend(self._pending_param)
+                func.params.extend(self._pending_param)
                 self._pending_param.clear()
 
         return nodes, self._pending_str
