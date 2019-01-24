@@ -31,20 +31,11 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     install_requires=[
-        'luaparser>=2.0.2',
-        'Jinja2>2.0,<3.0'
+        'luaparser>=2.0.2'
     ],
     entry_points={
         'console_scripts': [
             'luadoc = luadoc.__main__:main'
-        ]
-    },
-    package_data={
-        'luadoc': [
-            'templates/default/*',
-            'templates/vendor/bootstrap/css/*',
-            'templates/vendor/bootstrap/js/*',
-            'templates/vendor/jquery/*',
         ]
     },
     include_package_data=True
