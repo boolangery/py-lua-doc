@@ -2,6 +2,7 @@
 import sys
 import os
 import logging
+import json
 from optparse import OptionParser, OptionGroup
 import luadoc
 from luadoc import FilesProcessor, Configuration, DocOptions
@@ -48,10 +49,10 @@ def main():
                          dest='jobs',
                          help='number of parallel jobs in recursive mode',
                          default=4)
-    cli_group.add_option('-m', '--model',
+    cli_group.add_option('--pretty',
                          action='store_true',
-                         dest='model',
-                         help='print documentation model',
+                         dest='pretty',
+                         help='python pretty print style',
                          default=False)
     cli_group.add_option('--type',
                          action="append",
@@ -106,11 +107,14 @@ def main():
         model = FilesProcessor(options.jobs, doc_options).run(filenames)
 
     # render
-    # if options.model:
-    print(toPrettyStr(model))
-    # else:
-    #     from luadoc.renderers import HtmlRenderer, HtmlTemplate
-    #     HtmlRenderer().render(model, HtmlTemplate.DEFAULT, options.output)
+    if options.pretty:
+        print(toPrettyStr(model))
+    else:
+        class MyEncoder(json.JSONEncoder):
+            def default(self, o):
+                return o.__dict__
+
+        print(json.dumps(model, cls=MyEncoder, indent=4))
 
 if __name__ == '__main__':
     main()
