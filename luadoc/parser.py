@@ -21,11 +21,11 @@ class LuaDocParser:
     def __init__(self, start_symbol: str):
         self._start_symbol = start_symbol
         # list of string with no tag
-        self._pending_str = []
-        self._pending_param = []
-        self._pending_return = []
-        self._pending_function = []
-        self._pending_qualifiers = []  # @virtual, @abstract, @deprecated
+        self._pending_str: List[str] = []
+        self._pending_param: List[LuaParam] = []
+        self._pending_return: List[LuaReturn] = []
+        self._pending_function: List[LuaFunction] = []
+        self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
         self._usage_in_progress = False
         self._usage_str = []
         self._handlers = {
@@ -33,6 +33,7 @@ class LuaDocParser:
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
             '@deprecated': self._parse_deprecated,
+            '@function': self._parse_function,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
             '@param': self._parse_param,
@@ -105,6 +106,10 @@ class LuaDocParser:
             # handle pending usage
             if self._usage_in_progress:
                 nodes[-1].usage = '\n'.join(self._usage_str)
+
+            if self._pending_param:
+                nodes[-1].params.extend(self._pending_param)
+                self._pending_param.clear()
 
         return nodes, self._pending_str
 
@@ -241,6 +246,13 @@ class LuaDocParser:
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
+    def _parse_function(self, params: List[str]) -> LuaFunction:
+        if len(params) != 1:
+            raise SyntaxException('@function expect exactly one parameter')
+
+        func: LuaFunction = LuaFunction(params[0])
+        return func
+
     def _parse_private(self, params: List[str]):
         if self._pending_function:
             self._pending_function[-1].visibility = LuaVisibility.PRIVATE
@@ -332,11 +344,14 @@ class TreeVisitor:
         # check consistency
         self._check_function_args(ldoc_node, ast_node)
 
-        # try to register this function in a class
-        class_name = ast_node.source.id
+        if isinstance(ast_node, Method):
+            # try to register this function in a class
+            class_name = ast_node.source.id
 
-        if class_name in self._class_map:
-            self._class_map[class_name].methods.append(ldoc_node)
+            if class_name in self._class_map:
+                self._class_map[class_name].methods.append(ldoc_node)
+            else:
+                self._function_list.append(ldoc_node)
         else:
             self._function_list.append(ldoc_node)
 
@@ -446,6 +461,7 @@ class TreeVisitor:
         self.visit(node.body)
 
     def visit_LocalFunction(self, node):
+        self._process_ldoc(node)
         self.visit(node.args)
         self.visit(node.body)
 

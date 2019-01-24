@@ -5,7 +5,7 @@ class LuaNode:
     pass
 
 
-class LuaTypes(Enum):
+class LuaTypes(LuaNode):
     UNKNOWN = 0
     CUSTOM = 1
     STRING = 2
