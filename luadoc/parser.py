@@ -7,7 +7,7 @@ from typing import List
 
 class DocOptions:
     def __init__(self):
-        self.comment_prefix = '---'
+        self.comment_prefix = '--'
 
 
 class SyntaxException(Exception):
@@ -44,6 +44,7 @@ class LuaDocParser:
             '@type': self._parse_class,
             '@usage': self._parse_usage,
             '@virtual': self._parse_virtual,
+            '@function': self._parse_function,
         }
         self._param_type_str_to_lua_types = {
             'string': LuaTypes.STRING,
@@ -69,23 +70,26 @@ class LuaDocParser:
         self._pending_qualifiers = []
         self._usage_in_progress = False
         self._usage_str = []
+        self._function_name = None
 
         nodes = []
         for comment in comments:
             node = self._parse_comment(comment)
             if node is not None:
                 nodes.append(node)
-
+            
         # handle pending nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
+            print("here", type(ast_node))
             # methods
-            if type(ast_node) == Method:
+            if type(ast_node) == Method or self._function_name:
                 if self._pending_str:
                     short_desc = self._pending_str.pop(0)
                 else:
                     short_desc = ''
                 long_desc = '\n'.join(self._pending_str)
-                nodes.append(LuaFunction('', short_desc, long_desc, self._pending_param, self._pending_return))
+                nodes.append(LuaFunction(self._function_name if self._function_name else "", short_desc, long_desc, self._pending_param, self._pending_return))
+                self._function_name = None
 
         # handle function pending elements
         if nodes and type(nodes[-1]) is LuaFunction:
@@ -110,7 +114,7 @@ class LuaDocParser:
     def _parse_comment(self, comment:str):
         parts = comment.split()
         if parts:
-            if parts[0].startswith(self._start_symbol):
+            if parts[0].startswith(self._start_symbol) or True:
                 if len(parts) > 1 and parts[1].startswith('@'):
                     if parts[1] in self._handlers:
                         return self._handlers[parts[1]](parts[2:])
@@ -130,23 +134,28 @@ class LuaDocParser:
     def _parse_usage(self, params:List[str]):
         self._usage_in_progress = True
 
-    def _parse_module(self, params:List[str]):
+    def _parse_function(self, params:List[str]):
         if len(params) > 0:
-            return LuaModule(params[0])
+            self._function_name = params[0]
         else:
-            raise SyntaxException('@module must be followed by a module name')
+            raise SyntaxException('@function must be followed by a function name')
 
-    def _parse_class_mod(self, params:List[str]):
+    def _parse_module(self, params:List[str], isClassMod:bool=False):
         if len(params) > 0:
             module = LuaModule(params[0])
-            module.isClassMod = True
+            module.isClassMod = isClassMod
             module.desc = '\n'.join(self._pending_str)
 
             if self._usage_in_progress:
                 module.usage = '\n'.join(self._usage_str)
                 self._usage_in_progress = False
-
             return module
+        else:
+            raise SyntaxException('@module must be followed by a module name')
+
+    def _parse_class_mod(self, params:List[str]):
+        if len(params) > 0:
+            return self._parse_module(params, True)
         else:
             raise SyntaxException('@classmod must be followed by a module name')
 
@@ -324,21 +333,20 @@ class TreeVisitor:
             Add the function in pending list or in a class.
         """
         # check if we need to add infos
-        if type(ast_node.name) == Name and ast_node.name.id:
-            # must be completed by code ?
-            if ldoc_node.name == '':
+        if ldoc_node.name == '':
+            if type(ast_node.name) == Name and ast_node.name.id:
                 ldoc_node.name = ast_node.name.id
 
-        # check consistency
-        self._check_function_args(ldoc_node, ast_node)
+            # check consistency
+            self._check_function_args(ldoc_node, ast_node)
 
-        # try to register this function in a class
-        class_name = ast_node.source.id
+            # try to register this function in a class
+            class_name = ast_node.source.id
 
-        if class_name in self._class_map:
-            self._class_map[class_name].methods.append(ldoc_node)
-        else:
-            self._function_list.append(ldoc_node)
+            if class_name in self._class_map:
+                self._class_map[class_name].methods.append(ldoc_node)
+                return
+        self._function_list.append(ldoc_node)
 
     def _add_module(self, module, ast_node):
         """ Called when a new module is parsed.
