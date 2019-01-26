@@ -1,8 +1,18 @@
+import json
+from typing import List
 from luadoc.model import *
 
 
 def toPrettyStr(tree):
     return PythonStyleVisitor().visit(tree)
+
+
+def to_pretty_json(modules: List[LuaModule]) -> str:
+    class MyEncoder(json.JSONEncoder):
+        def default(self, o):
+            return o.__dict__
+
+    return json.dumps(modules, cls=MyEncoder, indent=4)
 
 
 class VisitorException(Exception):

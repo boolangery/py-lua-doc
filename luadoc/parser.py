@@ -269,7 +269,7 @@ class TreeVisitor:
 
         self._class_map = {}
         self._function_list = []
-        self._module = None
+        self._module: LuaModule = None
         self._type_handler = {
             LuaClass: self._add_class,
             LuaFunction: self._add_function,
@@ -296,13 +296,13 @@ class TreeVisitor:
             for n in node:
                 self.visit(n)
 
-    def get_model(self):
+    def get_model(self) -> LuaModule:
         """ Retrieve the final doc model.
         """
         if self._module:
-            model = self._module
+            model: LuaModule = self._module
         else:
-            model = LuaModule('unknown')
+            model: LuaModule = LuaModule('unknown')
 
         if model.isClassMod:
             if len(self._class_map) != 1:
@@ -541,16 +541,16 @@ class TreeVisitor:
 
 
 class DocParser:
-    def __init__(self, doc_options):
+    def __init__(self, doc_options: DocOptions = DocOptions()):
         self._doc_options = doc_options
 
-    def build_module_doc_model(self, input):
+    def build_module_doc_model(self, input_src: str) -> LuaModule:
         # try to get AST tree, do nothing if invalid source code is provided
         try:
-            tree = ast.parse(input)
+            tree = ast.parse(input_src)
         except ast.SyntaxException as e:
             logging.error(str(e))
-            return input
+            raise
 
         visitor = TreeVisitor(self._doc_options)
         visitor.visit(tree)

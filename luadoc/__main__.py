@@ -2,11 +2,10 @@
 import sys
 import os
 import logging
-import json
 from optparse import OptionParser, OptionGroup
 import luadoc
 from luadoc import FilesProcessor, Configuration, DocOptions
-from luadoc.printers import toPrettyStr
+from luadoc.printers import toPrettyStr, to_pretty_json
 
 
 def abort(msg):
@@ -105,11 +104,7 @@ def main():
     if options.pretty:
         print(toPrettyStr(model))
     else:
-        class MyEncoder(json.JSONEncoder):
-            def default(self, o):
-                return o.__dict__
-
-        print(json.dumps(model, cls=MyEncoder, indent=4))
+        print(to_pretty_json(model))
 
 if __name__ == '__main__':
     main()
