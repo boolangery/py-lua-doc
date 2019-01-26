@@ -1,0 +1,40 @@
+{
+    "classes": [],
+    "functions": [
+        {
+            "name": "setCar",
+            "short_desc": "",
+            "desc": "",
+            "params": [
+                {
+                    "name": "car",
+                    "desc": "the car",
+                    "type": {
+                        "type": 1,
+                        "name_if_custom": "Car"
+                    },
+                    "is_opt": false
+                },
+                {
+                    "name": "n",
+                    "desc": "id",
+                    "type": {
+                        "type": 4,
+                        "name_if_custom": ""
+                    },
+                    "is_opt": false
+                }
+            ],
+            "returns": [],
+            "usage": "",
+            "is_virtual": false,
+            "is_abstract": false,
+            "is_deprecated": false,
+            "visibility": 0
+        }
+    ],
+    "name": "unknown",
+    "isClassMod": false,
+    "desc": "",
+    "usage": ""
+}

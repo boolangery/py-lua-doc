@@ -4,12 +4,12 @@ from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
 from typing import List, Dict, cast
-from functools import singledispatch
 
 
 class DocOptions:
     def __init__(self):
         self.comment_prefix = '---'
+        self.emmy_lua_syntax = True
 
 
 class SyntaxException(Exception):
@@ -21,9 +21,10 @@ class LuaDocParser:
     """
 
     DOC_CLASS_RE = re.compile(r'^(\w+)(?: *: *(\w+))?')
+    PARAM_RE = re.compile(r'^(\w+) *([\w+\|]+) *(.*)')
 
-    def __init__(self, start_symbol: str):
-        self._start_symbol: str = start_symbol
+    def __init__(self, options: DocOptions):
+        self._start_symbol: str = options.comment_prefix
         # list of string with no tag
         self._pending_str: List[str] = []
         self._pending_param: List[LuaParam] = []
@@ -32,6 +33,8 @@ class LuaDocParser:
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
+
+        # install handlers
         self._handlers: Dict[str, any] = {
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
@@ -40,7 +43,7 @@ class LuaDocParser:
             '@function': self._parse_function,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
-            '@param': self._parse_param,
+            '@param': self._parse_emmy_lua_param if options.emmy_lua_syntax else self._parse_param,
             '@private': self._parse_private,
             '@return': self._parse_return,
             '@string': self._parse_string_param,
@@ -206,6 +209,23 @@ class LuaDocParser:
         else:
             raise SyntaxException('@param expect one parameters')
 
+    def _parse_emmy_lua_param(self, params: List[str]):
+        """
+        param_name MY_TYPE[|other_type] [@comment]
+        """
+        if len(params) > 1:
+            match = LuaDocParser.PARAM_RE.search(" ".join(params))
+            lua_type = self._parse_type(match.group(2))
+            param = LuaParam(match.group(1), match.group(3), lua_type)
+
+            # if function pending, add param to it
+            if self._pending_function:
+                self._pending_function[-1].params.append(param)
+            else:
+                self._pending_param.append(param)
+        else:
+            raise SyntaxException('@param expect one parameters')
+
     def _parse_string_param(self, params: List[str]):
         params.insert(0, 'string')
         self._parse_tparam(params)
@@ -276,9 +296,9 @@ class LuaDocParser:
 
 
 class TreeVisitor:
-    def __init__(self, doc_options):
+    def __init__(self, doc_options: DocOptions):
         self._doc_options = doc_options
-        self.parser = LuaDocParser(self._doc_options.comment_prefix)
+        self.parser = LuaDocParser(self._doc_options)
 
         self._class_map = {}
         self._function_list = []

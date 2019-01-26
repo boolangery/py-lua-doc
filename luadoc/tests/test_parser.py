@@ -33,3 +33,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_class_inheritance(self):
         self.make_test_from_sources("class_inheritance")
+
+    def test_emmy_lua_params(self):
+        self.make_test_from_sources("emmy_lua_params")
