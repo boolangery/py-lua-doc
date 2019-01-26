@@ -3,8 +3,8 @@ from typing import List
 from luadoc.model import *
 
 
-def toPrettyStr(tree):
-    return PythonStyleVisitor().visit(tree)
+def to_pretty_str(modules: List[LuaModule]):
+    return PythonStyleVisitor().visit(modules)
 
 
 def to_pretty_json(modules: List[LuaModule]) -> str:

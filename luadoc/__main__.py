@@ -5,7 +5,7 @@ import logging
 from optparse import OptionParser, OptionGroup
 import luadoc
 from luadoc import FilesProcessor, Configuration, DocOptions
-from luadoc.printers import toPrettyStr, to_pretty_json
+from luadoc.printers import to_pretty_str, to_pretty_json
 
 
 def abort(msg):
@@ -102,7 +102,7 @@ def main():
 
     # render
     if options.pretty:
-        print(toPrettyStr(model))
+        print(to_pretty_str(model))
     else:
         print(to_pretty_json(model))
 
