@@ -1,0 +1,41 @@
+{
+    "classes": [
+        {
+            "name": "Account",
+            "name_in_source": "",
+            "methods": [
+                {
+                    "name": "create",
+                    "short_desc": "",
+                    "desc": "",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "visibility": 0
+                },
+                {
+                    "name": "withdraw",
+                    "short_desc": "",
+                    "desc": "",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "visibility": 0
+                }
+            ],
+            "desc": "",
+            "usage": ""
+        }
+    ],
+    "functions": [],
+    "name": "Account",
+    "isClassMod": true,
+    "desc": "",
+    "usage": ""
+}
