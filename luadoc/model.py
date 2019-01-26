@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 
 class LuaNode:
@@ -70,11 +71,12 @@ class LuaFunction(LuaNode):
 class LuaClass(LuaNode):
     def __init__(self, name: str = 'unknown', name_in_source: str = ''):
         LuaNode.__init__(self)
-        self.name = name
-        self.name_in_source = name_in_source
-        self.methods = []
-        self.desc = ''
-        self.usage = ''
+        self.name: str = name
+        self.name_in_source: str = name_in_source
+        self.methods: LuaFunction = []
+        self.desc: str = ''
+        self.usage: str = ''
+        self.inherits_from: List[str] = []  # a list of class.name
 
 
 class LuaModule(LuaNode):

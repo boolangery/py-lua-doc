@@ -30,7 +30,8 @@
                 }
             ],
             "desc": "",
-            "usage": ""
+            "usage": "",
+            "inherits_from": []
         }
     ],
     "functions": [],

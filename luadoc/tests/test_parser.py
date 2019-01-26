@@ -23,10 +23,13 @@ class ParserTestCase(unittest.TestCase):
         lua_file.close()
         tree_file.close()
 
-        self.assertEqual(json_doc_tree, exp_doc_tree)
+        self.assertEqual(exp_doc_tree, json_doc_tree)
 
     def test_class(self):
         self.make_test_from_sources("class")
 
     def test_class_module(self):
         self.make_test_from_sources("class_module")
+
+    def test_class_inheritance(self):
+        self.make_test_from_sources("class_inheritance")

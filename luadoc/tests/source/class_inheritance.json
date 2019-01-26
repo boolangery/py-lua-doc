@@ -1,0 +1,27 @@
+{
+    "classes": [
+        {
+            "name": "Transport",
+            "name_in_source": "Transport",
+            "methods": [],
+            "desc": "",
+            "usage": "",
+            "inherits_from": []
+        },
+        {
+            "name": "Car",
+            "name_in_source": "Car",
+            "methods": [],
+            "desc": "",
+            "usage": "",
+            "inherits_from": [
+                "Transport"
+            ]
+        }
+    ],
+    "functions": [],
+    "name": "unknown",
+    "isClassMod": false,
+    "desc": "",
+    "usage": ""
+}

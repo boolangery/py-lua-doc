@@ -1,8 +1,10 @@
 import logging
+import re
 from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
 from typing import List, Dict, cast
+from functools import singledispatch
 
 
 class DocOptions:
@@ -17,6 +19,8 @@ class SyntaxException(Exception):
 class LuaDocParser:
     """ Lua doc style parser
     """
+
+    DOC_CLASS_RE = re.compile(r'^(\w+)(?: *: *(\w+))?')
 
     def __init__(self, start_symbol: str):
         self._start_symbol: str = start_symbol
@@ -130,8 +134,17 @@ class LuaDocParser:
         return None
 
     def _parse_class(self, params: List[str]):
+        """
+        --@class MY_TYPE[:PARENT_TYPE] [@comment]
+        """
         if len(params) > 0:
-            return LuaClass(params[0], params[0])
+            match = LuaDocParser.DOC_CLASS_RE.search(" ".join(params))
+            main_class = LuaClass(match.group(1), match.group(1))
+
+            if match.group(2):  # has base class
+                main_class.inherits_from.append(match.group(2))
+
+            return main_class
         else:
             raise SyntaxException('@class must be followed by a class name')
 
