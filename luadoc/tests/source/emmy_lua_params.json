@@ -9,19 +9,13 @@
                 {
                     "name": "car",
                     "desc": "the car",
-                    "type": {
-                        "type": 1,
-                        "name_if_custom": "Car"
-                    },
+                    "type": "Car",
                     "is_opt": false
                 },
                 {
                     "name": "n",
                     "desc": "id",
-                    "type": {
-                        "type": 4,
-                        "name_if_custom": ""
-                    },
+                    "type": "int",
                     "is_opt": false
                 }
             ],
