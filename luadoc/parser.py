@@ -20,6 +20,7 @@ class LuaDocParser:
     """ Lua doc style parser
     """
 
+    FUNCTION_RE = re.compile(r'^(\w+)')
     DOC_CLASS_RE = re.compile(r'^(\w+)(?: *: *(\w+))?')
     PARAM_RE = re.compile(r'^(\w+) *([\w+\|]+) *(.*)')
 
@@ -81,7 +82,7 @@ class LuaDocParser:
 
         nodes: List[LuaNode] = []
         for comment in comments:
-            node = self._parse_comment(comment)
+            node = self._parse_comment(comment, ast_node)
             if node is not None:
                 nodes.append(node)
 
@@ -122,13 +123,13 @@ class LuaDocParser:
 
         return nodes, self._pending_str
 
-    def _parse_comment(self, comment: str):
+    def _parse_comment(self, comment: str, ast_node: Node):
         if comment.startswith(self._start_symbol):
             parts = comment.lstrip(self._start_symbol).split()
             if parts:
                 if len(parts) > 0 and parts[0].startswith('@'):
                     if parts[0] in self._handlers:
-                        return self._handlers[parts[0]](parts[1:])
+                        return self._handlers[parts[0]](parts[1:], ast_node)
                 elif not self._usage_in_progress:
                     # its just a string
                     self._pending_str.append(' '.join(parts[0:]))
@@ -136,7 +137,7 @@ class LuaDocParser:
                     self._usage_str.append(comment[len(self._start_symbol) + 1:])
         return None
 
-    def _parse_class(self, params: List[str]):
+    def _parse_class(self, params: List[str], ast_node: Node):
         """
         --@class MY_TYPE[:PARENT_TYPE] [@comment]
         """
@@ -151,16 +152,16 @@ class LuaDocParser:
         else:
             raise SyntaxException('@class must be followed by a class name')
 
-    def _parse_usage(self, params: List[str]):
+    def _parse_usage(self, params: List[str], ast_node: Node):
         self._usage_in_progress = True
 
-    def _parse_module(self, params: List[str]):
+    def _parse_module(self, params: List[str], ast_node: Node):
         if len(params) > 0:
             return LuaModule(params[0])
         else:
             raise SyntaxException('@module must be followed by a module name')
 
-    def _parse_class_mod(self, params: List[str]) -> LuaModule:
+    def _parse_class_mod(self, params: List[str], ast_node: Node) -> LuaModule:
         if len(params) > 0:
             module = LuaModule(params[0])
             module.isClassMod = True
@@ -195,10 +196,10 @@ class LuaDocParser:
         else:
             raise SyntaxException('@tparam expect two parameters')
 
-    def _parse_tparam_opt(self, params: List[str]):
+    def _parse_tparam_opt(self, params: List[str], ast_node: Node):
         self._parse_tparam(params, True)
 
-    def _parse_param(self, params: List[str]):
+    def _parse_param(self, params: List[str], ast_node: Node):
         if len(params) > 1:
             param = LuaParam(params[0], ' '.join(params[1:]))
             # if function pending, add param to it
@@ -209,7 +210,7 @@ class LuaDocParser:
         else:
             raise SyntaxException('@param expect one parameters')
 
-    def _parse_emmy_lua_param(self, params: List[str]):
+    def _parse_emmy_lua_param(self, params: List[str], ast_node: Node):
         """
         param_name MY_TYPE[|other_type] [@comment]
         """
@@ -234,7 +235,7 @@ class LuaDocParser:
         params.insert(0, 'int')
         self._parse_tparam(params)
 
-    def _parse_treturn(self, params: List[str]):
+    def _parse_treturn(self, params: List[str], ast_node: Node):
         if len(params) >= 2:
             lua_type = self._parse_type(params[0])
             desc = ' '.join(params[1:])
@@ -249,7 +250,7 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect at least two parameters (%s)' % str(params))
 
-    def _parse_return(self, params: List[str]):
+    def _parse_return(self, params: List[str], ast_node: Node):
         if len(params) > 1:
             desc = ' '.join(params[0:])
 
@@ -263,36 +264,52 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect one parameter')
 
-    def _parse_virtual(self, params: List[str]):
+    def _parse_virtual(self, params: List[str], ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_virtual = True
         else:
             self._pending_qualifiers.append(LuaVirtualQualifier())
 
-    def _parse_abstract(self, params: List[str]):
+    def _parse_abstract(self, params: List[str], ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_abstract = True
         else:
             self._pending_qualifiers.append(LuaAbstractQualifier())
 
-    def _parse_deprecated(self, params: List[str]):
+    def _parse_deprecated(self, params: List[str], ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_deprecated = True
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
-    def _parse_function(self, params: List[str]) -> LuaFunction:
-        if len(params) != 1:
-            raise SyntaxException('@function expect exactly one parameter')
+    def _parse_function(self, params: List[str], ast_node: Node) -> LuaFunction:
+        match = LuaDocParser.DOC_CLASS_RE.search(" ".join(params))
 
-        func: LuaFunction = LuaFunction(params[0])
-        return func
+        if match is None:  # empty function name
+            # try to deduce it from ast node
+            return LuaFunction(get_lua_function_name(ast_node))
+        if match.group(1):  # function name provided
+            return LuaFunction(match.group(1))
+        else:
+            raise SyntaxException('@function invalid statement')
 
-    def _parse_private(self, params: List[str]):
+    def _parse_private(self, params: List[str], ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].visibility = LuaVisibility.PRIVATE
         else:
             self._pending_qualifiers.append(LuaPrivateQualifier())
+
+
+def get_lua_function_name(node: Node):
+    """
+    Retrieve the function name from an ast function node.
+    """
+    if isinstance(node, Function):
+        if isinstance(node.name, Index):
+            return node.name.idx.id
+        else:
+            return node.name.id
+    return "unknown"
 
 
 class TreeVisitor:
