@@ -123,15 +123,15 @@ class LuaDocParser:
         return nodes, self._pending_str
 
     def _parse_comment(self, comment: str):
-        parts = comment.split()
-        if parts:
-            if parts[0].startswith(self._start_symbol):
-                if len(parts) > 1 and parts[1].startswith('@'):
-                    if parts[1] in self._handlers:
-                        return self._handlers[parts[1]](parts[2:])
+        if comment.startswith(self._start_symbol):
+            parts = comment.lstrip(self._start_symbol).split()
+            if parts:
+                if len(parts) > 0 and parts[0].startswith('@'):
+                    if parts[0] in self._handlers:
+                        return self._handlers[parts[0]](parts[1:])
                 elif not self._usage_in_progress:
                     # its just a string
-                    self._pending_str.append(' '.join(parts[1:]))
+                    self._pending_str.append(' '.join(parts[0:]))
                 else:
                     self._usage_str.append(comment[len(self._start_symbol) + 1:])
         return None
@@ -492,6 +492,7 @@ class TreeVisitor:
     # Call / Invoke / Method / Anonymous                                      #
     # ####################################################################### #
     def visit_Function(self, node):
+        self._process_ldoc(node)
         self.visit(node.args)
         self.visit(node.body)
 
