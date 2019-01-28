@@ -4,6 +4,7 @@ from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
 from typing import List, Dict, cast
+from parsimonious.grammar import Grammar
 
 
 class DocOptions:
@@ -214,18 +215,21 @@ class LuaDocParser:
         """
         param_name MY_TYPE[|other_type] [@comment]
         """
-        if len(params) > 1:
-            match = LuaDocParser.PARAM_RE.search(" ".join(params))
-            lua_type = self._parse_type(match.group(2))
-            param = LuaParam(match.group(1), match.group(3), lua_type)
-
+        try:
+            text = " ".join(params)
+            parts = text.split(' ', 1)
+            param_name = parts[0]
+            text = parts[1]
+            emmy_type, desc = parse_emmy_lua_type(text)
+            doc_type = self._parse_type(emmy_type.strip())
+            param = LuaParam(param_name, desc, doc_type)
             # if function pending, add param to it
             if self._pending_function:
                 self._pending_function[-1].params.append(param)
             else:
                 self._pending_param.append(param)
-        else:
-            raise SyntaxException('@param expect one parameters')
+        except Exception:
+            raise SyntaxException('invalid @param field: ' + text)
 
     def _parse_string_param(self, params: List[str]):
         params.insert(0, 'string')
@@ -310,6 +314,33 @@ def get_lua_function_name(node: Node):
         else:
             return node.name.id
     return "unknown"
+
+
+emmy_lua_type_grammar = Grammar(
+    """
+    emmy_type_desc = emmy_type desc?
+    emmy_type      = (func / type_id) space ("|" space (func / type_id) space)*
+    func           = "fun" "(" space func_args space ")" space func_return?
+    func_return    = ":" space type_id 
+    func_args      = func_arg? (space "," space func_arg space)*
+    func_arg       = type_id space ":" space type_id
+    type_id        = func / (~"[_a-zA-Z][_a-zA-Z0-9]*" "[]"?)
+    desc           = ~".*"
+    space          = " "*
+    """)
+
+
+def parse_emmy_lua_type(input_str: str):
+    """
+    Validate an emmy lua type descriptor and return a tuple:
+    (type, description)
+    """
+    parse_tree = emmy_lua_type_grammar.parse(input_str)
+
+    if len(parse_tree.children) > 1:
+        return parse_tree.children[0].text, parse_tree.children[1].text
+    else:
+        return parse_tree.children[0].text, ""
 
 
 class TreeVisitor:
