@@ -24,7 +24,7 @@
             "is_virtual": false,
             "is_abstract": false,
             "is_deprecated": false,
-            "visibility": 0
+            "visibility": "public"
         }
     ],
     "name": "unknown",

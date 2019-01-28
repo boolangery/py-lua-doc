@@ -32,11 +32,20 @@ LuaTypes_str = dict([
     (LuaTypes.USERDATA, "userdata")
 ])
 
+LuaVisibility_str = dict([
+    (0, "public"),
+    (1, "protected"),
+    (2, "private")
+])
 
-class LuaVisibility(LuaNode):
+
+class LuaVisibility(Enum):
     PUBLIC = 0
     PROTECTED = 1
     PRIVATE = 2
+
+    def to_json(self) -> str:
+        return LuaVisibility_str[self.value]
 
 
 class LuaType(LuaNode):
@@ -88,6 +97,16 @@ class LuaFunction(LuaNode):
         self.visibility = LuaVisibility.PUBLIC
 
 
+class LuaClassField(LuaNode):
+    def __init__(self, name: str, desc: str,
+                 lua_type: LuaType = LuaType(LuaTypes.UNKNOWN),
+                 visibility: LuaVisibility = LuaVisibility.PUBLIC):
+        self.name = name
+        self.desc = desc
+        self.type = lua_type
+        self.visibility: LuaVisibility = visibility
+
+
 class LuaClass(LuaNode):
     def __init__(self, name: str = 'unknown', name_in_source: str = ''):
         LuaNode.__init__(self)
@@ -97,6 +116,7 @@ class LuaClass(LuaNode):
         self.desc: str = ''
         self.usage: str = ''
         self.inherits_from: List[str] = []  # a list of class.name
+        self.fields: List[LuaClassField] = []
 
 
 class LuaModule(LuaNode):

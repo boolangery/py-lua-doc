@@ -14,7 +14,7 @@
                     "is_virtual": false,
                     "is_abstract": false,
                     "is_deprecated": false,
-                    "visibility": 0
+                    "visibility": "public"
                 },
                 {
                     "name": "__tostring",
@@ -26,12 +26,13 @@
                     "is_virtual": false,
                     "is_abstract": false,
                     "is_deprecated": false,
-                    "visibility": 0
+                    "visibility": "public"
                 }
             ],
             "desc": "",
             "usage": "",
-            "inherits_from": []
+            "inherits_from": [],
+            "fields": []
         }
     ],
     "functions": [],

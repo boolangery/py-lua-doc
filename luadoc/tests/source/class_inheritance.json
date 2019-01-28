@@ -6,7 +6,8 @@
             "methods": [],
             "desc": "",
             "usage": "",
-            "inherits_from": []
+            "inherits_from": [],
+            "fields": []
         },
         {
             "name": "Car",
@@ -16,7 +17,8 @@
             "usage": "",
             "inherits_from": [
                 "Transport"
-            ]
+            ],
+            "fields": []
         }
     ],
     "functions": [],
