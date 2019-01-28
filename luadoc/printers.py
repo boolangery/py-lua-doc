@@ -7,12 +7,19 @@ def to_pretty_str(modules: List[LuaModule]):
     return PythonStyleVisitor().visit(modules)
 
 
-def to_pretty_json(modules: List[LuaModule]) -> str:
-    class MyEncoder(json.JSONEncoder):
-        def default(self, o):
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        try:
+            to_json = getattr(o, "to_json")
+            if callable(to_json):
+                return to_json()
+
+        except AttributeError:
             return o.__dict__
 
-    return json.dumps(modules, cls=MyEncoder, indent=4)
+
+def to_pretty_json(modules: List[LuaModule]) -> str:
+    return json.dumps(modules, cls=JSONEncoder, indent=4)
 
 
 class VisitorException(Exception):

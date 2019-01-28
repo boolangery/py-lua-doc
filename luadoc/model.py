@@ -1,12 +1,13 @@
 from enum import Enum
 from typing import List
+import json
 
 
 class LuaNode:
     pass
 
 
-class LuaTypes(LuaNode):
+class LuaTypes(Enum):
     UNKNOWN = 0
     CUSTOM = 1
     STRING = 2
@@ -19,6 +20,19 @@ class LuaTypes(LuaNode):
     USERDATA = 9
 
 
+LuaTypes_str = dict([
+    (LuaTypes.UNKNOWN, "unknown"),
+    (LuaTypes.STRING, "string"),
+    (LuaTypes.NUMBER, "number"),
+    (LuaTypes.INTEGER, "int"),
+    (LuaTypes.FLOAT, "float"),
+    (LuaTypes.BOOLEAN, "bool"),
+    (LuaTypes.FUNCTION, "func"),
+    (LuaTypes.TABLE, "table"),
+    (LuaTypes.USERDATA, "userdata")
+])
+
+
 class LuaVisibility(LuaNode):
     PUBLIC = 0
     PROTECTED = 1
@@ -29,6 +43,12 @@ class LuaType(LuaNode):
     def __init__(self, lua_type: LuaTypes, name_if_custom: str = ''):
         self.type = lua_type
         self.name_if_custom = name_if_custom
+
+    def to_json(self) -> str:
+        if self.type is LuaTypes.CUSTOM:
+            return self.name_if_custom
+        else:
+            return LuaTypes_str[self.type]
 
 
 class LuaParam(LuaNode):
