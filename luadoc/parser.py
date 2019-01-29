@@ -377,16 +377,18 @@ def get_lua_function_name(node: Node):
 
 emmy_lua_type_grammar = Grammar(
     """
-    emmy_type_desc = emmy_type desc?
-    emmy_type      = (func / type_id) space ("|" space (func / type_id) space)*
-    func           = "fun" "(" space func_args space ")" space func_return?
-    func_return    = ":" space type_id 
-    func_args      = func_arg? (space "," space func_arg space)*
-    func_arg       = type_id space ":" space type_id
-    type_id        = func / (id ("." id)* "[]"?)
+    emmy_type_desc = emmy_type_or desc?
+    emmy_type_or   = emmy_type s ("|" s emmy_type s)*
+    emmy_type      = func / table / type_id
+    table          = "table" s "<" s type_id s "," s type_id s ">" s
+    func           = "fun" "(" s func_args s ")" s func_return?
+    func_return    = ":" s type_id 
+    func_args      = func_arg? (s "," s func_arg s)*
+    func_arg       = type_id s ":" s emmy_type
+    type_id        = (id ("." id)* "[]"?)
     id             = ~"[_a-zA-Z][_a-zA-Z0-9]*"
     desc           = ~".*"
-    space          = " "*
+    s              = " "*
     """)
 
 
