@@ -38,6 +38,12 @@ LuaVisibility_str = dict([
     (2, "private")
 ])
 
+LuaVisibility_from_str = dict([
+    ("public", 0),
+    ("protected", 1),
+    ("private", 2)
+])
+
 
 class LuaVisibility(Enum):
     PUBLIC = 0

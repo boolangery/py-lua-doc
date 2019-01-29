@@ -33,6 +33,7 @@ class LuaDocParser:
         self._pending_return: List[LuaReturn] = []
         self._pending_function: List[LuaFunction] = []
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
+        self._pending_class: List[LuaClass] = []
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
 
@@ -42,6 +43,7 @@ class LuaDocParser:
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
             '@deprecated': self._parse_deprecated,
+            '@field': self._parse_class_field,
             '@function': self._parse_function,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
@@ -73,13 +75,14 @@ class LuaDocParser:
         comments = [c.s for c in ast_node.comments]
 
         # reset pending list
-        self._pending_str = []
-        self._pending_param = []
-        self._pending_function = []
-        self._pending_return = []
-        self._pending_qualifiers = []
+        self._pending_str.clear()
+        self._pending_param.clear()
+        self._pending_function.clear()
+        self._pending_return.clear()
+        self._pending_qualifiers.clear()
+        self._pending_class.clear()
         self._usage_in_progress = False
-        self._usage_str = []
+        self._usage_str.clear()
 
         nodes: List[LuaNode] = []
         for comment in comments:
@@ -149,6 +152,8 @@ class LuaDocParser:
         if match.group(2):  # has base class
             main_class.inherits_from.append(match.group(2))
 
+        self._pending_class.append(main_class)
+
         return main_class
 
     # noinspection PyUnusedLocal
@@ -175,6 +180,12 @@ class LuaDocParser:
         if type_str in self._param_type_str_to_lua_types:
             return LuaType(self._param_type_str_to_lua_types[type_str])
         return LuaType(LuaTypes.CUSTOM, type_str)
+
+    def _parse_visibility(self, string: str):
+        if string in LuaVisibility_from_str:
+            return LuaVisibility_from_str[string]
+        else:
+            raise SyntaxException("Invalid visibility string: " + string)
 
     def _parse_tparam(self, params: str, is_opt: bool = False):
         parts = params.split()
@@ -293,6 +304,34 @@ class LuaDocParser:
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
+    # noinspection PyUnusedLocal
+    def _parse_class_field(self, params: str, ast_node: Node):
+        """
+        ---@field [public|protected|private] field_name FIELD_TYPE[|OTHER_TYPE] [@comment]
+        """
+        try:
+            parts = params.split(' ', 2)  # split visibility and field name
+
+            if len(parts) < 3:
+                raise SyntaxException("@field expect at least a visibility, a name and a type")
+
+            field_visibility: LuaVisibility = self._parse_visibility(parts[0])
+            field_name: str = parts[1]
+            field_type_desc: str = parts[2]
+            emmy_type, desc = parse_emmy_lua_type(field_type_desc)
+            doc_type: LuaType = self._parse_type(emmy_type.strip())
+            field = LuaClassField(name=field_name,
+                                  desc=desc,
+                                  lua_type=doc_type,
+                                  visibility=field_visibility)
+
+            if self._pending_class:
+                self._pending_class[-1].fields.append(field)
+
+            return field
+        except Exception:
+            raise SyntaxException('invalid @field tag')
+
     def _parse_function(self, params: str, ast_node: Node) -> LuaFunction:
         match = LuaDocParser.DOC_CLASS_RE.search(params)
 
@@ -332,7 +371,8 @@ emmy_lua_type_grammar = Grammar(
     func_return    = ":" space type_id 
     func_args      = func_arg? (space "," space func_arg space)*
     func_arg       = type_id space ":" space type_id
-    type_id        = func / (~"[_a-zA-Z][_a-zA-Z0-9]*" "[]"?)
+    type_id        = func / (id ("." id)* "[]"?)
+    id             = ~"[_a-zA-Z][_a-zA-Z0-9]*"
     desc           = ~".*"
     space          = " "*
     """)
