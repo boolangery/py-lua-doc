@@ -34,6 +34,7 @@ class LuaDocParser:
         self._pending_function: List[LuaFunction] = []
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
         self._pending_class: List[LuaClass] = []
+        self._pending_module: List[LuaModule] = []
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
 
@@ -81,6 +82,7 @@ class LuaDocParser:
         self._pending_return.clear()
         self._pending_qualifiers.clear()
         self._pending_class.clear()
+        self._pending_module.clear()
         self._usage_in_progress = False
         self._usage_str.clear()
 
@@ -125,6 +127,11 @@ class LuaDocParser:
                 func.params.extend(self._pending_param)
                 self._pending_param.clear()
 
+        # handle module pending elements
+        if self._pending_module:
+            if self._usage_str:
+                self._pending_module[-1].usage = '\n'.join(self._usage_str)
+
         return nodes, self._pending_str
 
     def _parse_comment(self, comment: str, ast_node: Node):
@@ -158,6 +165,9 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_usage(self, params: str, ast_node: Node):
+        """
+        usage must be valid lua source code
+        """
         self._usage_in_progress = True
 
     # noinspection PyUnusedLocal
@@ -173,6 +183,8 @@ class LuaDocParser:
         if self._usage_in_progress:
             module.usage = '\n'.join(self._usage_str)
             self._usage_in_progress = False
+
+        self._pending_module.append(module)
 
         return module
 
@@ -488,10 +500,12 @@ class TreeVisitor:
             self._function_list.append(ldoc_node)
 
     # noinspection PyUnusedLocal
-    def _add_module(self, module, ast_node):
+    def _add_module(self, module: LuaModule, ast_node):
         """ Called when a new module is parsed.
             Throw an exception is more than one module is added
         """
+        self._check_usage_field(module.usage)
+
         if not self._module:
             self._module = module
         else:
@@ -524,6 +538,13 @@ class TreeVisitor:
                                           % (func_doc_node.name, doc.name, ast.id))
 
         pass
+
+    def _check_usage_field(self, usage: str):
+        if len(usage) > 0:
+            try:
+                ast.parse(usage)
+            except Exception as e:
+                logging.warning("Invalid usage exemple: " + str(e))
 
     # ####################################################################### #
     # Root Nodes                                                              #
@@ -680,7 +701,7 @@ class DocParser:
         # try to get AST tree, do nothing if invalid source code is provided
         try:
             tree = ast.parse(input_src)
-        except ast.SyntaxException as e:
+        except Exception as e:
             logging.error(str(e))
             raise
 
