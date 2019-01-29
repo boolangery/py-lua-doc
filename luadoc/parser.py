@@ -76,15 +76,15 @@ class LuaDocParser:
         comments = [c.s for c in ast_node.comments]
 
         # reset pending list
-        self._pending_str.clear()
-        self._pending_param.clear()
-        self._pending_function.clear()
-        self._pending_return.clear()
-        self._pending_qualifiers.clear()
-        self._pending_class.clear()
-        self._pending_module.clear()
+        self._pending_str = []
+        self._pending_param = []
+        self._pending_function = []
+        self._pending_return = []
+        self._pending_qualifiers = []
+        self._pending_class = []
+        self._pending_module = []
         self._usage_in_progress = False
-        self._usage_str.clear()
+        self._usage_str = []
 
         nodes: List[LuaNode] = []
         for comment in comments:
@@ -101,7 +101,7 @@ class LuaDocParser:
                 else:
                     short_desc = ''
                 long_desc = '\n'.join(self._pending_str)
-                nodes.append(LuaFunction('', short_desc, long_desc, self._pending_param, self._pending_return))
+                nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
         # handle function pending elements
         if nodes and type(nodes[-1]) is LuaFunction:
@@ -125,7 +125,7 @@ class LuaDocParser:
 
             if self._pending_param:
                 func.params.extend(self._pending_param)
-                self._pending_param.clear()
+                self._pending_param = []
 
         # handle module pending elements
         if self._pending_module:
@@ -199,7 +199,7 @@ class LuaDocParser:
         else:
             raise SyntaxException("Invalid visibility string: " + string)
 
-    def _parse_tparam(self, params: str, is_opt: bool = False):
+    def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False):
         parts = params.split()
 
         if len(parts) > 2:
@@ -219,7 +219,7 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_tparam_opt(self, params: str, ast_node: Node):
-        self._parse_tparam(params, True)
+        self._parse_tparam(params, ast_node, True)
 
     # noinspection PyUnusedLocal
     def _parse_param(self, params: str, ast_node: Node):
