@@ -3,7 +3,7 @@ import re
 from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
-from typing import List, Dict, cast
+from typing import List, Dict, cast, Callable
 from parsimonious.grammar import Grammar
 
 
@@ -23,7 +23,7 @@ class LuaDocParser:
 
     FUNCTION_RE = re.compile(r'^(\w+)')
     DOC_CLASS_RE = re.compile(r'^(\w+)(?: *: *(\w+))?')
-    PARAM_RE = re.compile(r'^(\w+) *([\w+\|]+) *(.*)')
+    PARAM_RE = re.compile(r'^(\w+) *([\w+|]+) *(.*)')
 
     def __init__(self, options: DocOptions):
         self._start_symbol: str = options.comment_prefix
@@ -37,7 +37,7 @@ class LuaDocParser:
         self._usage_str: List[str] = []
 
         # install handlers
-        self._handlers: Dict[str, any] = {
+        self._handlers: Dict[str, Callable[[str, Node], LuaNode or None]] = {
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
@@ -126,66 +126,63 @@ class LuaDocParser:
 
     def _parse_comment(self, comment: str, ast_node: Node):
         if comment.startswith(self._start_symbol):
-            parts = comment.lstrip(self._start_symbol).split()
+            text = comment.lstrip(self._start_symbol + " ")
+            parts = text.split(" ", 1)
             if parts:
-                if len(parts) > 0 and parts[0].startswith('@'):
+                if parts[0].startswith('@'):
                     if parts[0] in self._handlers:
-                        return self._handlers[parts[0]](parts[1:], ast_node)
+                        return self._handlers[parts[0]](parts[1] if len(parts) > 1 else "", ast_node)
                 elif not self._usage_in_progress:
                     # its just a string
-                    self._pending_str.append(' '.join(parts[0:]))
+                    self._pending_str.append(text)
                 else:
                     self._usage_str.append(comment[len(self._start_symbol) + 1:])
         return None
 
-    def _parse_class(self, params: List[str], ast_node: Node):
+    def _parse_class(self, params: str, ast_node: Node):
         """
         --@class MY_TYPE[:PARENT_TYPE] [@comment]
         """
-        if len(params) > 0:
-            match = LuaDocParser.DOC_CLASS_RE.search(" ".join(params))
-            main_class = LuaClass(match.group(1), match.group(1))
+        match = LuaDocParser.DOC_CLASS_RE.search(params)
+        main_class = LuaClass(match.group(1), match.group(1))
 
-            if match.group(2):  # has base class
-                main_class.inherits_from.append(match.group(2))
+        if match.group(2):  # has base class
+            main_class.inherits_from.append(match.group(2))
 
-            return main_class
-        else:
-            raise SyntaxException('@class must be followed by a class name')
+        return main_class
 
-    def _parse_usage(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_usage(self, params: str, ast_node: Node):
         self._usage_in_progress = True
 
-    def _parse_module(self, params: List[str], ast_node: Node):
-        if len(params) > 0:
-            return LuaModule(params[0])
-        else:
-            raise SyntaxException('@module must be followed by a module name')
+    # noinspection PyUnusedLocal
+    def _parse_module(self, params: str, ast_node: Node):
+        return LuaModule(params)
 
-    def _parse_class_mod(self, params: List[str], ast_node: Node) -> LuaModule:
-        if len(params) > 0:
-            module = LuaModule(params[0])
-            module.isClassMod = True
-            module.desc = '\n'.join(self._pending_str)
+    # noinspection PyUnusedLocal
+    def _parse_class_mod(self, params: str, ast_node: Node) -> LuaModule:
+        module = LuaModule(params)
+        module.isClassMod = True
+        module.desc = '\n'.join(self._pending_str)
 
-            if self._usage_in_progress:
-                module.usage = '\n'.join(self._usage_str)
-                self._usage_in_progress = False
+        if self._usage_in_progress:
+            module.usage = '\n'.join(self._usage_str)
+            self._usage_in_progress = False
 
-            return module
-        else:
-            raise SyntaxException('@classmod must be followed by a module name')
+        return module
 
     def _parse_type(self, type_str: str):
         if type_str in self._param_type_str_to_lua_types:
             return LuaType(self._param_type_str_to_lua_types[type_str])
         return LuaType(LuaTypes.CUSTOM, type_str)
 
-    def _parse_tparam(self, params: List[str], is_opt: bool = False):
-        if len(params) > 2:
-            lua_type = self._parse_type(params[0])
-            name = params[1]
-            desc = ' '.join(params[2:])
+    def _parse_tparam(self, params: str, is_opt: bool = False):
+        parts = params.split()
+
+        if len(parts) > 2:
+            lua_type = self._parse_type(parts[0])
+            name = parts[1]
+            desc = ' '.join(parts[2:])
 
             param = LuaParam(name, desc, lua_type, is_opt)
 
@@ -197,12 +194,15 @@ class LuaDocParser:
         else:
             raise SyntaxException('@tparam expect two parameters')
 
-    def _parse_tparam_opt(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_tparam_opt(self, params: str, ast_node: Node):
         self._parse_tparam(params, True)
 
-    def _parse_param(self, params: List[str], ast_node: Node):
-        if len(params) > 1:
-            param = LuaParam(params[0], ' '.join(params[1:]))
+    # noinspection PyUnusedLocal
+    def _parse_param(self, params: str, ast_node: Node):
+        parts = params.split()
+        if len(parts) > 1:
+            param = LuaParam(parts[0], ' '.join(parts[1:]))
             # if function pending, add param to it
             if self._pending_function:
                 self._pending_function[-1].params.append(param)
@@ -211,16 +211,16 @@ class LuaDocParser:
         else:
             raise SyntaxException('@param expect one parameters')
 
-    def _parse_emmy_lua_param(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_emmy_lua_param(self, params: str, ast_node: Node):
         """
         param_name MY_TYPE[|other_type] [@comment]
         """
         try:
-            text = " ".join(params)
-            parts = text.split(' ', 1)
+            parts = params.split(' ', 1)
             param_name = parts[0]
-            text = parts[1]
-            emmy_type, desc = parse_emmy_lua_type(text)
+            params = parts[1]
+            emmy_type, desc = parse_emmy_lua_type(params)
             doc_type = self._parse_type(emmy_type.strip())
             param = LuaParam(param_name, desc, doc_type)
             # if function pending, add param to it
@@ -229,20 +229,21 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         except Exception:
-            raise SyntaxException('invalid @param field: ' + text)
+            raise SyntaxException('invalid @param field: ' + params)
 
-    def _parse_string_param(self, params: List[str]):
-        params.insert(0, 'string')
-        self._parse_tparam(params)
+    def _parse_string_param(self, params: str):
+        self._parse_tparam("string " + params)
 
-    def _parse_int_param(self, params: List[str]):
-        params.insert(0, 'int')
-        self._parse_tparam(params)
+    def _parse_int_param(self, params: str):
+        self._parse_tparam("int " + params)
 
-    def _parse_treturn(self, params: List[str], ast_node: Node):
-        if len(params) >= 2:
-            lua_type = self._parse_type(params[0])
-            desc = ' '.join(params[1:])
+    # noinspection PyUnusedLocal
+    def _parse_treturn(self, params: str, ast_node: Node):
+        parts = params.split()
+
+        if len(parts) >= 2:
+            lua_type = self._parse_type(parts[0])
+            desc = ' '.join(parts[1:])
 
             param = LuaReturn(desc, lua_type)
 
@@ -254,9 +255,12 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect at least two parameters (%s)' % str(params))
 
-    def _parse_return(self, params: List[str], ast_node: Node):
-        if len(params) > 1:
-            desc = ' '.join(params[0:])
+    # noinspection PyUnusedLocal
+    def _parse_return(self, params: str, ast_node: Node):
+        parts = params.split()
+
+        if len(parts) > 1:
+            desc = ' '.join(parts[0:])
 
             param = LuaReturn(desc)
 
@@ -268,26 +272,29 @@ class LuaDocParser:
         else:
             raise SyntaxException('@treturn expect one parameter')
 
-    def _parse_virtual(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_virtual(self, params: str, ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_virtual = True
         else:
             self._pending_qualifiers.append(LuaVirtualQualifier())
 
-    def _parse_abstract(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_abstract(self, params: str, ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_abstract = True
         else:
             self._pending_qualifiers.append(LuaAbstractQualifier())
 
-    def _parse_deprecated(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_deprecated(self, params: str, ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].is_deprecated = True
         else:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
-    def _parse_function(self, params: List[str], ast_node: Node) -> LuaFunction:
-        match = LuaDocParser.DOC_CLASS_RE.search(" ".join(params))
+    def _parse_function(self, params: str, ast_node: Node) -> LuaFunction:
+        match = LuaDocParser.DOC_CLASS_RE.search(params)
 
         if match is None:  # empty function name
             # try to deduce it from ast node
@@ -297,7 +304,8 @@ class LuaDocParser:
         else:
             raise SyntaxException('@function invalid statement')
 
-    def _parse_private(self, params: List[str], ast_node: Node):
+    # noinspection PyUnusedLocal
+    def _parse_private(self, params: str, ast_node: Node):
         if self._pending_function:
             self._pending_function[-1].visibility = LuaVisibility.PRIVATE
         else:
@@ -358,20 +366,21 @@ class TreeVisitor:
         }
 
     def visit(self, node):
-        if node is None: return
+        if node is None:
+            return
         if isinstance(node, Node):
             # call enter node method
             # if no visitor method found for this arg type,
             # search in parent arg type:
-            parentType = node.__class__
-            while parentType != object:
-                name = 'visit_' + parentType.__name__
+            parent_type = node.__class__
+            while parent_type != object:
+                name = 'visit_' + parent_type.__name__
                 visitor = getattr(self, name, None)
                 if visitor:
                     visitor(node)
                     break
                 else:
-                    parentType = parentType.__bases__[0]
+                    parent_type = parent_type.__bases__[0]
 
         elif isinstance(node, list):
             for n in node:
@@ -438,6 +447,7 @@ class TreeVisitor:
         else:
             self._function_list.append(ldoc_node)
 
+    # noinspection PyUnusedLocal
     def _add_module(self, module, ast_node):
         """ Called when a new module is parsed.
             Throw an exception is more than one module is added
