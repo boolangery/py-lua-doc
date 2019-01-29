@@ -58,6 +58,7 @@ class LuaDocParser:
             '@type': self._parse_class,
             '@usage': self._parse_usage,
             '@virtual': self._parse_virtual,
+            "@vararg": self._parse_varargs,
         }
         self._param_type_str_to_lua_types = {
             'string': LuaTypes.STRING,
@@ -301,6 +302,21 @@ class LuaDocParser:
             self._pending_function[-1].is_virtual = True
         else:
             self._pending_qualifiers.append(LuaVirtualQualifier())
+
+    # noinspection PyUnusedLocal
+    def _parse_varargs(self, params: str, ast_node: Node):
+        try:
+            emmy_type, desc = parse_emmy_lua_type(params)
+            doc_type = self._parse_type(emmy_type.strip())
+            param = LuaParam("...", desc, doc_type)
+
+            # if function pending, add param to it
+            if self._pending_function:
+                self._pending_function[-1].params.append(param)
+            else:
+                self._pending_param.append(param)
+        except Exception:
+            raise SyntaxException('invalid @param field: ' + params)
 
     # noinspection PyUnusedLocal
     def _parse_abstract(self, params: str, ast_node: Node):
