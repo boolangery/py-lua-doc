@@ -32,26 +32,21 @@ LuaTypes_str = dict([
     (LuaTypes.USERDATA, "userdata")
 ])
 
-LuaVisibility_str = dict([
-    (0, "public"),
-    (1, "protected"),
-    (2, "private")
-])
-
-LuaVisibility_from_str = dict([
-    ("public", 0),
-    ("protected", 1),
-    ("private", 2)
-])
-
 
 class LuaVisibility(Enum):
-    PUBLIC = 0
-    PROTECTED = 1
-    PRIVATE = 2
+    PUBLIC = "public"
+    PROTECTED = "protected"
+    PRIVATE = "private"
 
-    def to_json(self) -> str:
-        return LuaVisibility_str[self.value]
+    def to_json(self):
+        return self.value
+
+
+LuaVisibility_from_str = dict([
+    ("public", LuaVisibility.PUBLIC),
+    ("protected", LuaVisibility.PROTECTED),
+    ("private", LuaVisibility.PRIVATE)
+])
 
 
 class LuaType(LuaNode):
