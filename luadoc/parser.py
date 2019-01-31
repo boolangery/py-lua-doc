@@ -277,8 +277,7 @@ class LuaDocParser:
             parts = params.split(' ', 1)
             param_name = parts[0]
             params = parts[1]
-            emmy_type, desc = emmylua.parse_type_str(params)
-            doc_type = self._parse_type(emmy_type.strip())
+            doc_type, desc = emmylua.parse_param_field(params)
             param = LuaParam(param_name, desc, doc_type)
             # if function pending, add param to it
             if self._pending_function:
@@ -332,8 +331,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_return(self, params: str, ast_node: Node):
         try:
-            emmy_type, desc = emmylua.parse_type_str(params)
-            doc_type = self._parse_type(emmy_type.strip())
+            doc_type, desc = emmylua.parse_param_field(params)
             lua_return = LuaReturn(desc, doc_type)
 
             # if function pending, add param to it
@@ -354,8 +352,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_varargs(self, params: str, ast_node: Node):
         try:
-            emmy_type, desc = emmylua.parse_type_str(params)
-            doc_type = self._parse_type(emmy_type.strip())
+            doc_type, desc = emmylua.parse_param_field(params)
             param = LuaParam("...", desc, doc_type)
 
             # if function pending, add param to it
@@ -394,8 +391,7 @@ class LuaDocParser:
             field_visibility: LuaVisibility = self._parse_visibility(parts[0])
             field_name: str = parts[1]
             field_type_desc: str = parts[2]
-            emmy_type, desc = emmylua.parse_type_str(field_type_desc)
-            doc_type: LuaType = self._parse_type(emmy_type.strip())
+            doc_type, desc = emmylua.parse_param_field(field_type_desc)
             field = LuaClassField(name=field_name,
                                   desc=desc,
                                   lua_type=doc_type,

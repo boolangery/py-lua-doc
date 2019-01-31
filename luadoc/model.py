@@ -7,7 +7,7 @@ class LuaNode:
     pass
 
 
-class LuaTypes(Enum):
+class LuaTypes:
     UNKNOWN = 0
     CUSTOM = 1
     STRING = 2
@@ -33,7 +33,7 @@ LuaTypes_str = dict([
 ])
 
 
-class LuaVisibility(Enum):
+class LuaVisibility:
     PUBLIC = "public"
     PROTECTED = "protected"
     PRIVATE = "private"
@@ -50,15 +50,96 @@ LuaVisibility_from_str = dict([
 
 
 class LuaType(LuaNode):
-    def __init__(self, lua_type: LuaTypes, name_if_custom: str = ''):
-        self.type = lua_type
-        self.name_if_custom = name_if_custom
+    def __init__(self, name: str):
+        self.id = name
 
-    def to_json(self) -> str:
-        if self.type is LuaTypes.CUSTOM:
-            return self.name_if_custom
-        else:
-            return LuaTypes_str[self.type]
+    # def to_json(self) -> str:
+    #    if self.type is LuaTypes.CUSTOM:
+    #        return self.name_if_custom
+    #    else:
+    #        return LuaTypes_str[self.type]
+
+
+class LuaTypeNil(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "nil")
+
+
+class LuaTypeBoolean(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "boolean")
+
+
+class LuaTypeNumber(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "number")
+
+
+class LuaTypeString(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "string")
+
+
+class LuaTypeFunction(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "function")
+
+
+class LuaTypeUserdata(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "userdata")
+
+
+class LuaTypeThread(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "thread")
+
+
+class LuaTypeTable(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "table")
+
+
+class LuaTypeAny(LuaType):
+    def __init__(self):
+        LuaType.__init__(self, "any")
+
+
+class LuaTypeArray(LuaType):
+    def __init__(self, lua_type: LuaType):
+        LuaType.__init__(self, "array")
+        self.type = lua_type
+
+
+class LuaTypeCustom(LuaType):
+    def __init__(self, name: str):
+        LuaType.__init__(self, "custom")
+        self.name = name
+
+
+class LuaTypeDict(LuaType):
+    def __init__(self, key_type: LuaType, value_type: LuaType):
+        LuaType.__init__(self, "dict")
+        self.key_type = key_type
+        self.value_type = value_type
+
+
+class LuaTypeCallable(LuaType):
+    def __init__(self, arg_types: List[LuaType], return_types: List[LuaType]):
+        LuaType.__init__(self, "callable")
+        self.arg_types = arg_types
+        self.return_types = return_types
+
+
+class LuaTypeOr(LuaType):
+    """
+    Represent a list of possible types.
+    e.g: number | string
+    """
+
+    def __init__(self, lua_types: List[LuaType]):
+        LuaType.__init__(self, "or")
+        self.types = lua_types
 
 
 class LuaParam(LuaNode):
