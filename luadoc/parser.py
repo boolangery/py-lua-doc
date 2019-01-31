@@ -4,7 +4,7 @@ from luaparser import ast
 from luaparser.astnodes import *
 from luadoc.model import *
 from typing import List, Dict, cast, Callable
-from parsimonious.grammar import Grammar
+import luadoc.emmylua as emmylua
 
 
 class DocOptions:
@@ -244,7 +244,7 @@ class LuaDocParser:
             parts = params.split(' ', 1)
             param_name = parts[0]
             params = parts[1]
-            emmy_type, desc = parse_emmy_lua_type(params)
+            emmy_type, desc = emmylua.parse_type_str(params)
             doc_type = self._parse_type(emmy_type.strip())
             param = LuaParam(param_name, desc, doc_type)
             # if function pending, add param to it
@@ -299,7 +299,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_return(self, params: str, ast_node: Node):
         try:
-            emmy_type, desc = parse_emmy_lua_type(params)
+            emmy_type, desc = emmylua.parse_type_str(params)
             doc_type = self._parse_type(emmy_type.strip())
             lua_return = LuaReturn(desc, doc_type)
 
@@ -321,7 +321,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_varargs(self, params: str, ast_node: Node):
         try:
-            emmy_type, desc = parse_emmy_lua_type(params)
+            emmy_type, desc = emmylua.parse_type_str(params)
             doc_type = self._parse_type(emmy_type.strip())
             param = LuaParam("...", desc, doc_type)
 
@@ -361,7 +361,7 @@ class LuaDocParser:
             field_visibility: LuaVisibility = self._parse_visibility(parts[0])
             field_name: str = parts[1]
             field_type_desc: str = parts[2]
-            emmy_type, desc = parse_emmy_lua_type(field_type_desc)
+            emmy_type, desc = emmylua.parse_type_str(field_type_desc)
             doc_type: LuaType = self._parse_type(emmy_type.strip())
             field = LuaClassField(name=field_name,
                                   desc=desc,
@@ -404,36 +404,6 @@ def get_lua_function_name(node: Node):
         else:
             return node.name.id
     return "unknown"
-
-
-emmy_lua_type_grammar = Grammar(
-    """
-    emmy_type_desc = emmy_type_or desc?
-    emmy_type_or   = emmy_type s ("|" s emmy_type s)*
-    emmy_type      = func / table / type_id
-    table          = "table" s "<" s type_id s "," s type_id s ">" s
-    func           = "fun" "(" s func_args s ")" s func_return?
-    func_return    = ":" s type_id 
-    func_args      = func_arg? (s "," s func_arg s)*
-    func_arg       = type_id s ":" s emmy_type
-    type_id        = (id ("." id)* "[]"?)
-    id             = ~"[_a-zA-Z][_a-zA-Z0-9]*"
-    desc           = ~".*"
-    s              = " "*
-    """)
-
-
-def parse_emmy_lua_type(input_str: str):
-    """
-    Validate an emmy lua type descriptor and return a tuple:
-    (type, description)
-    """
-    parse_tree = emmy_lua_type_grammar.parse(input_str)
-
-    if len(parse_tree.children) > 1:
-        return parse_tree.children[0].text, parse_tree.children[1].text
-    else:
-        return parse_tree.children[0].text, ""
 
 
 class TreeVisitor:
