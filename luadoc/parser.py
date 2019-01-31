@@ -35,6 +35,7 @@ class LuaDocParser:
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
         self._pending_class: List[LuaClass] = []
         self._pending_module: List[LuaModule] = []
+        self._pending_overload: List[LuaFunction] = []
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
 
@@ -48,6 +49,7 @@ class LuaDocParser:
             '@function': self._parse_function,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
+            '@overload': self._parse_overload,
             '@param': self._parse_emmy_lua_param if options.emmy_lua_syntax else self._parse_param,
             '@private': self._parse_private,
             '@return': self._parse_emmy_lua_return if options.emmy_lua_syntax else self._parse_return,
@@ -86,6 +88,7 @@ class LuaDocParser:
         self._pending_module = []
         self._usage_in_progress = False
         self._usage_str = []
+        self._pending_overload = []
 
         nodes: List[LuaNode] = []
         for comment in comments:
@@ -128,12 +131,34 @@ class LuaDocParser:
                 func.params.extend(self._pending_param)
                 self._pending_param = []
 
+            for overload in self._pending_overload:
+                nodes.append(self._create_function_overload(func, overload))
+
         # handle module pending elements
         if self._pending_module:
             if self._usage_str:
                 self._pending_module[-1].usage = '\n'.join(self._usage_str)
 
         return nodes, self._pending_str
+
+    def _create_function_overload(self, original: LuaFunction, overload_def: LuaFunction) -> LuaFunction:
+        overload = LuaFunction(name=original.name, short_desc=original.short_desc, desc=original.desc)
+        overload.usage = original.usage
+        overload.is_virtual = original.is_virtual
+        overload.is_abstract = original.is_abstract
+        overload.is_deprecated = original.is_deprecated
+        overload.visibility = original.visibility
+
+        overload_param_dict = {p.name: p for p in overload_def.params}
+
+        # add original param from original function only if it exists overloaded def.
+        for param in original.params:
+            if param.name in overload_param_dict:
+                overload.params.append(param)
+
+        overload.returns.extend(original.returns)
+
+        return overload
 
     def _parse_comment(self, comment: str, ast_node: Node):
         if comment.startswith(self._start_symbol):
@@ -174,6 +199,14 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_module(self, params: str, ast_node: Node):
         return LuaModule(params)
+
+    # noinspection PyUnusedLocal
+    def _parse_overload(self, params: str, ast_node: Node):
+        try:
+            model = emmylua.parse_overload(params)
+            self._pending_overload.append(model)
+        except Exception:
+            raise SyntaxException('invalid @overload field: ' + params)
 
     # noinspection PyUnusedLocal
     def _parse_class_mod(self, params: str, ast_node: Node) -> LuaModule:
