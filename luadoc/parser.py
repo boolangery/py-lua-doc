@@ -22,7 +22,7 @@ class LuaDocParser:
     """
 
     FUNCTION_RE = re.compile(r'^(\w+)')
-    DOC_CLASS_RE = re.compile(r'^(\w+)(?: *: *(\w+))?')
+    DOC_CLASS_RE = re.compile(r'^([\w\.]+)(?: *: *([\w\.]+))?')
     PARAM_RE = re.compile(r'^(\w+) *([\w+|]+) *(.*)')
 
     def __init__(self, options: DocOptions):
