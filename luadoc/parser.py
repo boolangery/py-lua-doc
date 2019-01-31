@@ -50,7 +50,7 @@ class LuaDocParser:
             '@module': self._parse_module,
             '@param': self._parse_emmy_lua_param if options.emmy_lua_syntax else self._parse_param,
             '@private': self._parse_private,
-            '@return': self._parse_return,
+            '@return': self._parse_emmy_lua_return if options.emmy_lua_syntax else self._parse_return,
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
             '@tparam[opt]': self._parse_tparam_opt,
@@ -294,7 +294,22 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            raise SyntaxException('@treturn expect one parameter')
+            raise SyntaxException('@return expect one parameter')
+
+    # noinspection PyUnusedLocal
+    def _parse_emmy_lua_return(self, params: str, ast_node: Node):
+        try:
+            emmy_type, desc = parse_emmy_lua_type(params)
+            doc_type = self._parse_type(emmy_type.strip())
+            lua_return = LuaReturn(desc, doc_type)
+
+            # if function pending, add param to it
+            if self._pending_function:
+                self._pending_function[-1].returns.append(lua_return)
+            else:
+                self._pending_return.append(lua_return)
+        except Exception:
+            raise SyntaxException('invalid @return field: ' + params)
 
     # noinspection PyUnusedLocal
     def _parse_virtual(self, params: str, ast_node: Node):
