@@ -11,6 +11,7 @@ class DocOptions:
     def __init__(self):
         self.comment_prefix = '---'
         self.emmy_lua_syntax = True
+        self.private_prefix = "_"
 
 
 class SyntaxException(Exception):
@@ -522,7 +523,7 @@ class TreeVisitor:
 
         self._class_map[ldoc_node.name_in_source] = ldoc_node
 
-    def _add_function(self, ldoc_node, ast_node):
+    def _add_function(self, ldoc_node: LuaFunction, ast_node):
         """ Called when a LuaFunction is added.
             Check if informations must be added directly from source code.
             Add the function in pending list or in a class.
@@ -558,6 +559,15 @@ class TreeVisitor:
                         self._class_map[class_name].methods.append(ldoc_node)
         else:
             self._function_list.append(ldoc_node)
+
+        self._auto_private(ldoc_node)
+
+    def _auto_private(self, func: LuaFunction):
+        """
+        Set a function as private if it starts with the right prefix.
+        """
+        if func.name.startswith(self._doc_options.private_prefix):
+            func.visibility = LuaVisibility.PRIVATE
 
     # noinspection PyUnusedLocal
     def _add_module(self, module: LuaModule, ast_node):
@@ -681,7 +691,7 @@ class TreeVisitor:
                     if isinstance(node.name.idx, Name) and isinstance(node.name.value, Name):
                         potential_cls_name = node.name.value.id
                         # auto-create class doc model
-                        if potential_cls_name not in self._class_map:
+                        if potential_cls_name not in self._class_map and self._function_list:
                             self._class_map[potential_cls_name] = LuaClass(potential_cls_name)
                             func_model = self._function_list.pop()
                             self._check_function_args(func_model, node)

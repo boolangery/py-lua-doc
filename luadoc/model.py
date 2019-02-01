@@ -53,12 +53,6 @@ class LuaType(LuaNode):
     def __init__(self, name: str):
         self.id = name
 
-    # def to_json(self) -> str:
-    #    if self.type is LuaTypes.CUSTOM:
-    #        return self.name_if_custom
-    #    else:
-    #        return LuaTypes_str[self.type]
-
 
 class LuaTypeNil(LuaType):
     def __init__(self):
@@ -133,6 +127,7 @@ class LuaTypeCallable(LuaType):
 
     def to_json(self):
         return {
+            "id": self.id,
             "arg_types": self.arg_types,
             "return_types": self.return_types,
         }
