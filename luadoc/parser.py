@@ -52,6 +52,7 @@ class LuaDocParser:
             '@overload': self._parse_overload,
             '@param': self._parse_emmy_lua_param if options.emmy_lua_syntax else self._parse_param,
             '@private': self._parse_private,
+            '@protected': self._parse_protected,
             '@return': self._parse_emmy_lua_return if options.emmy_lua_syntax else self._parse_return,
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
@@ -120,8 +121,10 @@ class LuaDocParser:
                         cast(LuaAbstractQualifier, nodes[-1]).is_abstract = True
                     elif type(qualifier) is LuaDeprecatedQualifier:
                         cast(LuaDeprecatedQualifier, nodes[-1]).is_deprecated = True
-                    else:
+                    elif type(qualifier) is LuaPrivateQualifier:
                         func.visibility = LuaVisibility.PRIVATE
+                    elif type(qualifier) is LuaProtectedQualifier:
+                        func.visibility = LuaVisibility.PROTECTED
 
             # handle pending usage
             if self._usage_in_progress:
@@ -420,6 +423,12 @@ class LuaDocParser:
         else:
             self._pending_qualifiers.append(LuaPrivateQualifier())
 
+    # noinspection PyUnusedLocal
+    def _parse_protected(self, params: str, ast_node: Node):
+        if self._pending_function:
+            self._pending_function[-1].visibility = LuaVisibility.PROTECTED
+        else:
+            self._pending_qualifiers.append(LuaProtectedQualifier())
 
 def get_lua_function_name(node: Node):
     """

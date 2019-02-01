@@ -242,3 +242,8 @@ class LuaDeprecatedQualifier(LuaQualifier):
 class LuaPrivateQualifier(LuaQualifier):
     def __init__(self):
         LuaQualifier.__init__(self)
+
+
+class LuaProtectedQualifier(LuaQualifier):
+    def __init__(self):
+        LuaQualifier.__init__(self)
