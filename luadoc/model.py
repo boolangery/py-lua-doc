@@ -183,6 +183,7 @@ class LuaFunction(LuaNode):
         self.is_virtual = False
         self.is_abstract = False
         self.is_deprecated = False
+        self.is_static = False
         self.visibility = LuaVisibility.PUBLIC
 
 

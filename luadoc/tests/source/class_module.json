@@ -14,6 +14,7 @@
                     "is_virtual": false,
                     "is_abstract": false,
                     "is_deprecated": false,
+                    "is_static": false,
                     "visibility": "public"
                 },
                 {
@@ -26,6 +27,7 @@
                     "is_virtual": false,
                     "is_abstract": false,
                     "is_deprecated": false,
+                    "is_static": false,
                     "visibility": "public"
                 }
             ],

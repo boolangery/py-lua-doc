@@ -108,6 +108,15 @@ class LuaDocParser:
                 long_desc = '\n'.join(self._pending_str)
                 nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
+            # Detect static method: a Function with an Index as name
+            if type(ast_node) == Function:
+                if self._pending_str:
+                    short_desc = self._pending_str.pop(0)
+                else:
+                    short_desc = ''
+                long_desc = '\n'.join(self._pending_str)
+                nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
+
         # handle function pending elements
         if nodes and type(nodes[-1]) is LuaFunction:
             func: LuaFunction = cast(LuaFunction, nodes[-1])
@@ -535,6 +544,18 @@ class TreeVisitor:
                 self._class_map[class_name].methods.append(ldoc_node)
             else:
                 self._function_list.append(ldoc_node)
+        # static method
+        elif isinstance(ast_node, Function):
+            if isinstance(ast_node.name, Index):
+                # for now handle only foo.bar syntax
+                if isinstance(ast_node.name.idx, Name) and isinstance(ast_node.name.value, Name):
+                    class_name = ast_node.name.value.id
+                    func_name = ast_node.name.idx.id
+
+                    ldoc_node.name = func_name
+                    ldoc_node.is_static = True
+                    if class_name in self._class_map:
+                        self._class_map[class_name].methods.append(ldoc_node)
         else:
             self._function_list.append(ldoc_node)
 
@@ -649,8 +670,23 @@ class TreeVisitor:
     # ####################################################################### #
     # Call / Invoke / Method / Anonymous                                      #
     # ####################################################################### #
-    def visit_Function(self, node):
-        self._process_ldoc(node)
+    def visit_Function(self, node: Function):
+        doc_nodes, pending_str = self._process_ldoc(node)
+
+        for doc_node in doc_nodes:
+            if isinstance(doc_node, LuaFunction):
+                # check if it's a static method: foo.bar()
+                if isinstance(node.name, Index):
+                    # for now handle only foo.bar syntax
+                    if isinstance(node.name.idx, Name) and isinstance(node.name.value, Name):
+                        potential_cls_name = node.name.value.id
+                        # auto-create class doc model
+                        if potential_cls_name not in self._class_map:
+                            self._class_map[potential_cls_name] = LuaClass(potential_cls_name)
+                            func_model = self._function_list.pop()
+                            self._check_function_args(func_model, node)
+                            self._class_map[potential_cls_name].methods.append(func_model)
+
         self.visit(node.args)
         self.visit(node.body)
 
