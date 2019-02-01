@@ -15,7 +15,8 @@ EMMY_LUA_TYPE_GRAMMAR = Grammar(
     func           = "fun" _ "(" _ func_args? _ ")" _ func_return?
     func_return    = ":" _ emmy_type 
     func_args      = func_arg (_ "," _ func_arg _)*
-    func_arg       = id _ ":" _ emmy_type
+    func_arg       = func_arg_name ":" _ emmy_type
+    func_arg_name  = id _
 
     type_id        = id ("." id)*
     id             = ~"[_a-zA-Z][_a-zA-Z0-9]*"
@@ -77,7 +78,7 @@ class EmmyLuaParser:
 
     # noinspection PyUnusedLocal
     def visit_func_arg_name(self, node, children):
-        self._function_stack[-1].param_names.append(node.text)
+        self._function_stack[-1].param_names.append(node.text.strip())
 
     # noinspection PyUnusedLocal
     def visit_func_return(self, node, children):
