@@ -1,6 +1,6 @@
 import unittest
 import luadoc.model as model
-from luadoc.emmylua import parse_type_str, parse_overload, parse_param_field
+from luadoc.emmylua import parse_param_field
 
 
 class ParserTestCase(unittest.TestCase):
@@ -37,4 +37,9 @@ class ParserTestCase(unittest.TestCase):
     def test_parse_fun_nested_expr(self):
         t, desc = parse_param_field("fun(s: string, f: fun(i: number))")
         self.assertIsInstance(t, model.LuaTypeCallable)
+        self.assertEqual(len(t.arg_types), 2)
+        self.assertIsInstance(t.arg_types[0], model.LuaTypeString)
+        self.assertIsInstance(t.arg_types[1], model.LuaTypeCallable)
+        self.assertEqual(len(t.arg_types[1].arg_types), 1)
+        self.assertIsInstance(t.arg_types[1].arg_types[0], model.LuaTypeNumber)
 

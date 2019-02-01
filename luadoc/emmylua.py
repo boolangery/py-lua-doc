@@ -2,23 +2,25 @@ import luadoc.model as model
 from parsimonious.grammar import Grammar, NodeVisitor
 from typing import List
 
+
 EMMY_LUA_TYPE_GRAMMAR = Grammar(
     """
-    emmy_type_desc = emmy_type_or (s "," s emmy_type_or)* desc?
-
-    emmy_type_or   = emmy_type s ("|" s emmy_type s)*
+    emmy_type_desc = emmy_type_or (_ "," _ emmy_type_or)* desc?
+    emmy_type_or   = emmy_type _ ("|" _ emmy_type _)*
     emmy_type      = func / table / array / type_id
-    table          = "table" s "<" s type_id s "," s type_id s ">" s
-    func           = "fun" "(" s func_args? s ")" s func_return?
-    func_return    = ":" s type_id 
-    func_args      = func_arg (s "," s func_arg s)*
-    func_arg       = func_arg_name s ":" s emmy_type
-    func_arg_name  = id s
-    array          = type_id s "[]"
+
+    table          = "table" _ "<" _ emmy_type _ "," _ emmy_type _ ">" _
+    array          = type_id _ "[]"
+
+    func           = "fun" _ "(" _ func_args? _ ")" _ func_return?
+    func_return    = ":" _ emmy_type 
+    func_args      = func_arg (_ "," _ func_arg _)*
+    func_arg       = id _ ":" _ emmy_type
+
     type_id        = id ("." id)*
     id             = ~"[_a-zA-Z][_a-zA-Z0-9]*"
     desc           = ~".*"
-    s              = " "*
+    _              = " "*
     """)
 
 # convert emmy lua types to model one
@@ -32,37 +34,54 @@ EMMY_TYPE_TO_STD = {
 }
 
 
-class EmmyLuaParser(NodeVisitor):
-    def __init__(self, strict=True):
-        self.grammar = EMMY_LUA_TYPE_GRAMMAR
-        self._strict = strict
-        self._functions: List[model.LuaTypeCallable] = []
-        self._func_params: List[model.LuaType] = []
-        self._func_returns: List[model.LuaType] = []
-        self._func_arg_count_stack: List[int] = [0]
+class FuncContext:
+    def __init__(self):
+        self.params: List[model.LuaType] = []
+        self.param_names: List[str] = []
+        self.returns: List[model.LuaType] = []
+
+
+class EmmyLuaParser:
+    def __init__(self):
+        self._function_stack: List[FuncContext] = []
         self.types: List[model.LuaType] = []
         self.desc: str = ""
 
+    def visit(self, node):
+        enter_visitor = getattr(self, "enter_" + node.expr_name, None)
+        if enter_visitor:
+            enter_visitor(node, node.children)
+
+        for n in node.children:
+            self.visit(n)
+
+        visitor = getattr(self, "visit_" + node.expr_name, None)
+        if visitor:
+            visitor(node, node.children)
+
+    # noinspection PyUnusedLocal
+    def enter_func(self, node, children):
+        self._function_stack.append(FuncContext())
 
     # noinspection PyUnusedLocal
     def visit_func(self, node, children):
-        func = model.LuaTypeCallable(arg_types=self._func_params, return_types=self._func_returns)
-        self._func_params = []
-        self._func_returns = []
+        func = model.LuaTypeCallable(arg_types=self._function_stack[-1].params,
+                                     return_types=self._function_stack[-1].returns,
+                                     arg_names=self._function_stack[-1].param_names)
+        self._function_stack.pop()
         self.types.append(func)
 
     # noinspection PyUnusedLocal
     def visit_func_arg(self, node, children):
-        self._func_arg_count_stack[-1] = self._func_arg_count_stack[-1] + 1
-        self._func_params.append(self.types.pop())
+        self._function_stack[-1].params.append(self.types.pop())
 
     # noinspection PyUnusedLocal
-    def visit_func_args(self, node, children):
-        self._func_arg_count_stack.append(0)
+    def visit_func_arg_name(self, node, children):
+        self._function_stack[-1].param_names.append(node.text)
 
     # noinspection PyUnusedLocal
     def visit_func_return(self, node, children):
-        self._func_returns.append(self.types.pop())
+        self._function_stack[-1].returns.append(self.types.pop())
 
     # noinspection PyUnusedLocal
     def visit_table(self, node, children):
@@ -98,23 +117,10 @@ def parse_param_field(input_str: str) -> (model.LuaType, str):
     Try to parse an emmy lua param field:
     param_name MY_TYPE[|other_type] [@comment]
     """
-    parser = EmmyLuaParser()
-    parser.parse(input_str)
-    return parser.types[0], parser.desc
-
-
-def parse_type_str(input_str: str) -> (model.LuaType, str):
-    """
-    Validate an emmy lua type descriptor and return a tuple:
-    (type, description)
-    """
     parse_tree = EMMY_LUA_TYPE_GRAMMAR.parse(input_str)
-
-    parser = EmmyLuaTypesParser()
-    parser.parse(input_str)
-    type = parse_type(parser.types[0])
-
-    return type, parser.desc
+    parser = EmmyLuaParser()
+    parser.visit(parse_tree)
+    return parser.types[0], parser.desc
 
 
 def parse_type(type_str: str) -> model.LuaType:
@@ -138,48 +144,3 @@ def parse_type(type_str: str) -> model.LuaType:
         return model.LuaTypeAny()
     else:
         return model.LuaTypeCustom(type_str)
-
-
-def parse_overload(input_str: str) -> model.LuaFunction:
-    parser = EmmyLuaFuncParser()
-    parser.parse(input_str)
-    return parser.get_function()
-
-
-class EmmyLuaFuncParser(NodeVisitor):
-    def __init__(self, strict=True):
-        self.grammar = EMMY_LUA_TYPE_GRAMMAR
-        self._strict = strict
-        self._functions: List[model.LuaFunction] = []
-        self._func_params: List[model.LuaParam] = []
-        self._func_param_names: List[str] = []
-        self._func_returns: List[model.LuaReturn] = []
-        self._types: List[model.LuaNode] = []
-
-    def get_function(self) -> model.LuaFunction:
-        func = model.LuaFunction("anonymous", params=self._func_params, returns=self._func_returns)
-
-        return func
-
-    # noinspection PyUnusedLocal
-    def visit_func(self, node, children):
-        self._types.append(parse_type(node.text))
-
-    # noinspection PyUnusedLocal
-    def visit_func_arg(self, node, children):
-        self._func_params.append(model.LuaParam(self._func_param_names.pop(), "", self._types.pop()))
-
-    # noinspection PyUnusedLocal
-    def visit_func_return(self, node, children):
-        self._func_returns.append(model.LuaReturn("", self._types.pop()))
-
-    # noinspection PyUnusedLocal
-    def visit_type_id(self, node, children):
-        self._types.append(parse_type(node.text))
-
-    # noinspection PyUnusedLocal
-    def visit_func_arg_name(self, node, children):
-        self._func_param_names.append(node.text)
-
-    def generic_visit(self, node, children):
-        pass

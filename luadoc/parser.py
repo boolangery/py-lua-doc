@@ -35,7 +35,7 @@ class LuaDocParser:
         self._pending_qualifiers: List[LuaQualifier] = []  # @virtual, @abstract, @deprecated
         self._pending_class: List[LuaClass] = []
         self._pending_module: List[LuaModule] = []
-        self._pending_overload: List[LuaFunction] = []
+        self._pending_overload: List[LuaTypeCallable] = []
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
 
@@ -141,7 +141,7 @@ class LuaDocParser:
 
         return nodes, self._pending_str
 
-    def _create_function_overload(self, original: LuaFunction, overload_def: LuaFunction) -> LuaFunction:
+    def _create_function_overload(self, original: LuaFunction, overload_def: LuaTypeCallable) -> LuaFunction:
         overload = LuaFunction(name=original.name, short_desc=original.short_desc, desc=original.desc)
         overload.usage = original.usage
         overload.is_virtual = original.is_virtual
@@ -149,11 +149,9 @@ class LuaDocParser:
         overload.is_deprecated = original.is_deprecated
         overload.visibility = original.visibility
 
-        overload_param_dict = {p.name: p for p in overload_def.params}
-
         # add original param from original function only if it exists overloaded def.
         for param in original.params:
-            if param.name in overload_param_dict:
+            if param.name in overload_def.arg_names:
                 overload.params.append(param)
 
         overload.returns.extend(original.returns)
@@ -203,7 +201,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_overload(self, params: str, ast_node: Node):
         try:
-            model = emmylua.parse_overload(params)
+            model, desc = emmylua.parse_param_field(params)
             self._pending_overload.append(model)
         except Exception:
             raise SyntaxException('invalid @overload field: ' + params)

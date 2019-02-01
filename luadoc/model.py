@@ -125,10 +125,17 @@ class LuaTypeDict(LuaType):
 
 
 class LuaTypeCallable(LuaType):
-    def __init__(self, arg_types: List[LuaType], return_types: List[LuaType]):
+    def __init__(self, arg_types: List[LuaType], return_types: List[LuaType], arg_names: List[str] = []):
         LuaType.__init__(self, "callable")
         self.arg_types = arg_types
+        self.arg_names = arg_names
         self.return_types = return_types
+
+    def to_json(self):
+        return {
+            "arg_types": self.arg_types,
+            "return_types": self.return_types,
+        }
 
 
 class LuaTypeOr(LuaType):
