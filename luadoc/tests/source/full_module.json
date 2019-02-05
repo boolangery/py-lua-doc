@@ -1,0 +1,103 @@
+{
+    "classes": [
+        {
+            "name": "pl.List",
+            "name_in_source": "List",
+            "methods": [
+                {
+                    "name": "new",
+                    "short_desc": "",
+                    "desc": "",
+                    "params": [
+                        {
+                            "name": "size",
+                            "desc": "",
+                            "type": {
+                                "id": "any"
+                            },
+                            "is_opt": false,
+                            "default_value": ""
+                        }
+                    ],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public"
+                }
+            ],
+            "desc": "",
+            "usage": "",
+            "inherits_from": [],
+            "fields": []
+        }
+    ],
+    "functions": [
+        {
+            "name": "isalpha",
+            "short_desc": "does s only contain alphabetic characters?",
+            "desc": "",
+            "params": [
+                {
+                    "name": "s",
+                    "desc": "a string",
+                    "type": {
+                        "id": "string"
+                    },
+                    "is_opt": false,
+                    "default_value": ""
+                }
+            ],
+            "returns": [
+                {
+                    "desc": "",
+                    "type": {
+                        "id": "boolean"
+                    }
+                }
+            ],
+            "usage": "",
+            "is_virtual": false,
+            "is_abstract": false,
+            "is_deprecated": false,
+            "is_static": true,
+            "visibility": "public"
+        },
+        {
+            "name": "isdigit",
+            "short_desc": "does s only contain digits?",
+            "desc": "",
+            "params": [
+                {
+                    "name": "s",
+                    "desc": "a string",
+                    "type": {
+                        "id": "string"
+                    },
+                    "is_opt": false,
+                    "default_value": ""
+                }
+            ],
+            "returns": [
+                {
+                    "desc": "",
+                    "type": {
+                        "id": "boolean"
+                    }
+                }
+            ],
+            "usage": "",
+            "is_virtual": false,
+            "is_abstract": false,
+            "is_deprecated": false,
+            "is_static": true,
+            "visibility": "public"
+        }
+    ],
+    "name": "pl.stringx",
+    "is_class_mod": false,
+    "desc": "",
+    "usage": ""
+}

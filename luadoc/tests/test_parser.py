@@ -39,3 +39,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_luadoc_tparam(self):
         self.make_test_from_sources("luadoc_tparam")
+
+    def test_full_module(self):
+        self.make_test_from_sources("full_module")
