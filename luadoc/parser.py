@@ -25,7 +25,9 @@ class LuaDocParser:
     """
 
     FUNCTION_RE = re.compile(r'^(\w+)')
-    DOC_CLASS_RE = re.compile(r'^([\w\.]+)(?: *: *([\w\.]+))?')
+    # match: MY_TYPE: PARENT_TYPE @comment
+    # match: MY_TYPE: PARENT_TYPE, TYPE2 comment
+    DOC_CLASS_RE = re.compile(r'^([\w\.]+)(?:\s*:\s*([\w\.]+(?:\s*,\s*[\w\.]+)*))?\s*@?(.*)$')
     PARAM_RE = re.compile(r'^(\w+) *([\w+|]+) *(.*)')
 
     def __init__(self, options: DocOptions):
@@ -205,14 +207,21 @@ class LuaDocParser:
         --@class MY_TYPE[:PARENT_TYPE] [@comment]
         """
         match = LuaDocParser.DOC_CLASS_RE.search(params)
-        main_class = LuaClass(match.group(1), match.group(1))
 
-        if match.group(2):  # has base class
-            main_class.inherits_from.append(match.group(2))
+        if match:
+            main_class, raw_bases, desc = match.groups()
 
-        self._pending_class.append(main_class)
+            main_class = LuaClass(main_class, main_class)
 
-        return main_class
+            if raw_bases:  # has base class
+                bases = [x.strip() for x in raw_bases.split(',')]
+                main_class.inherits_from = bases
+
+            self._pending_class.append(main_class)
+
+            return main_class
+        else:
+            logging.error("invalid @class tag: @class %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_usage(self, params: str, ast_node: Node):
