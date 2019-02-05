@@ -427,7 +427,7 @@ class LuaDocParser:
             logging.error("invalid @field tag: @field %s", params)
 
     def _parse_function(self, params: str, ast_node: Node) -> LuaFunction:
-        match = LuaDocParser.DOC_CLASS_RE.search(params)
+        match = LuaDocParser.FUNCTION_RE.search(params)
 
         if match is None:  # empty function name
             # try to deduce it from ast node
