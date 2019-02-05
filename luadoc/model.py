@@ -146,7 +146,7 @@ class LuaTypeOr(LuaType):
 
 class LuaParam(LuaNode):
     def __init__(self, name: str, desc: str,
-                 lua_type: LuaType = LuaType(LuaTypes.UNKNOWN),
+                 lua_type: LuaType = LuaTypeAny(),
                  is_opt: bool = False):
         self.name = name
         self.desc = desc
@@ -155,7 +155,7 @@ class LuaParam(LuaNode):
 
 
 class LuaReturn(LuaNode):
-    def __init__(self, desc: str, lua_type: LuaType = LuaType(LuaTypes.UNKNOWN)):
+    def __init__(self, desc: str, lua_type: LuaType = LuaTypeAny()):
         self.desc = desc
         self.type = lua_type
 
@@ -184,7 +184,7 @@ class LuaFunction(LuaNode):
 
 class LuaClassField(LuaNode):
     def __init__(self, name: str, desc: str,
-                 lua_type: LuaType = LuaType(LuaTypes.UNKNOWN),
+                 lua_type: LuaType = LuaTypeAny(),
                  visibility: LuaVisibility = LuaVisibility.PUBLIC):
         self.name = name
         self.desc = desc

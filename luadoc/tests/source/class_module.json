@@ -8,7 +8,16 @@
                     "name": "create",
                     "short_desc": "",
                     "desc": "",
-                    "params": [],
+                    "params": [
+                        {
+                            "name": "balance",
+                            "desc": "",
+                            "type": {
+                                "id": "any"
+                            },
+                            "is_opt": false
+                        }
+                    ],
                     "returns": [],
                     "usage": "",
                     "is_virtual": false,
@@ -21,7 +30,16 @@
                     "name": "withdraw",
                     "short_desc": "",
                     "desc": "",
-                    "params": [],
+                    "params": [
+                        {
+                            "name": "amount",
+                            "desc": "",
+                            "type": {
+                                "id": "any"
+                            },
+                            "is_opt": false
+                        }
+                    ],
                     "returns": [],
                     "usage": "",
                     "is_virtual": false,

@@ -2,6 +2,7 @@ import logging
 import re
 from luaparser import ast
 from luaparser.astnodes import *
+import luaparser.astnodes as nodes
 from luadoc.model import *
 from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
@@ -590,6 +591,20 @@ class TreeVisitor:
                 self._type_handler[type(n)](n, ast_node)
         return ldoc_nodes, pending_str
 
+    def _auto_param_from_meth_ast(self, doc_node: LuaFunction, ast_node: nodes.Method):
+        """
+        Automatically create param doc from a Function ast node.
+        """
+        doc_param_dict: Dict[str, LuaParam] = {p.name: p for p in doc_node.params}
+
+        for arg in ast_node.args:
+            if isinstance(arg, nodes.Name):
+                if arg.id not in doc_param_dict:
+                    doc_node.params.append(LuaParam(name=arg.id, desc=""))
+            elif isinstance(arg, nodes.Varargs):
+                doc_node.params.append(LuaParam(name="...", desc=""))
+
+
     # ####################################################################### #
     # Checking doc consistency                                                #
     # ####################################################################### #
@@ -700,12 +715,12 @@ class TreeVisitor:
         self.visit(node.args)
         self.visit(node.body)
 
-    def visit_LocalFunction(self, node):
+    def visit_LocalFunction(self, node: LocalFunction):
         self._process_ldoc(node)
         self.visit(node.args)
         self.visit(node.body)
 
-    def visit_Method(self, node):
+    def visit_Method(self, node: Method):
         doc_nodes, pending_str = self._process_ldoc(node)
 
         if type(node.source) == Name and type(node.name) == Name:
@@ -722,14 +737,14 @@ class TreeVisitor:
             if not doc_nodes:
                 short_desc = ''
                 desc = ''
-                params = []
 
                 if len(pending_str) > 0:
                     short_desc = pending_str[0]
                 if len(pending_str) > 1:
                     desc = ' '.join(pending_str[1:])
 
-                func_model = LuaFunction(node.name.id, short_desc, desc, params)
+                func_model = LuaFunction(node.name.id, short_desc, desc, [])
+                self._auto_param_from_meth_ast(func_model, node)
                 self._check_function_args(func_model, node)
 
                 if node.source.id in self._class_map:
