@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import concurrent.futures
+import logging
 from luadoc.parser import DocParser, DocOptions
 
 
@@ -42,10 +43,10 @@ class FilesProcessor:
         return doc_parser.build_module_doc_model(file_content)
 
     def run(self, files):
-        print(str(len(files)) + ' file(s) to process')
+        logging.info(str(len(files)) + ' file(s) to process')
 
         processed = 0
-        print('[' + str(processed) + '/' + str(len(files)) + '] file(s) processed')
+        logging.info('[' + str(processed) + '/' + str(len(files)) + '] file(s) processed')
 
         # some stats
         start = time.time()
@@ -62,14 +63,14 @@ class FilesProcessor:
                     total_file += 1
                     model.append(future.result())
                 except Exception as exc:
-                    print('%r generated an exception: %s' % (file, exc))
+                    logging.error('%r generated an exception: %s' % (file, exc))
                 else:
                     processed += 1
-                    print('[' + str(processed) + '/' + str(len(files)) + '] file(s) processed, last is ' + file)
+                    logging.info('[' + str(processed) + '/' + str(len(files)) + '] file(s) processed, last is ' + file)
                     sys.stdout.flush()
 
         end = time.time()
-        print(str(total_file) + ' files processed in ' + str(round(end - start, 2)) + ' s')
+        logging.info(str(total_file) + ' files processed in ' + str(round(end - start, 2)) + ' s')
         return model
 
     def run_for_source(self, source):

@@ -77,7 +77,7 @@ def main():
     if options.debug:
         logging.basicConfig(level=logging.DEBUG, format='%(levelname)s:\t%(message)s')
     else:
-        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        logging.basicConfig(level=logging.ERROR, format='%(message)s')
 
     # create doc options
     doc_options = DocOptions()
