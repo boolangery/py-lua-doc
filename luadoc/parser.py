@@ -317,11 +317,11 @@ class LuaDocParser:
         except Exception:
             logging.error("invalid @param tag: @param %s", params)
 
-    def _parse_string_param(self, params: str):
-        self._parse_tparam("string " + params)
+    def _parse_string_param(self, params: str, ast_node: Node):
+        self._parse_tparam("string " + params, ast_node)
 
-    def _parse_int_param(self, params: str):
-        self._parse_tparam("int " + params)
+    def _parse_int_param(self, params: str, ast_node: Node):
+        self._parse_tparam("int " + params, ast_node)
 
     # noinspection PyUnusedLocal
     def _parse_treturn(self, params: str, ast_node: Node):
