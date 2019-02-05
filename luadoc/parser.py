@@ -6,6 +6,7 @@ import luaparser.astnodes as nodes
 from luadoc.model import *
 from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
+import luadoc.luadoc as luadoc
 
 
 class DocOptions:
@@ -234,11 +235,6 @@ class LuaDocParser:
 
         return module
 
-    def _parse_type(self, type_str: str):
-        if type_str in self._param_type_str_to_lua_types:
-            return LuaType(self._param_type_str_to_lua_types[type_str])
-        return LuaType(LuaTypes.CUSTOM, type_str)
-
     def _parse_visibility(self, string: str):
         if string in LuaVisibility_from_str:
             return LuaVisibility_from_str[string]
@@ -249,7 +245,7 @@ class LuaDocParser:
         parts = params.split()
 
         if len(parts) > 2:
-            lua_type = self._parse_type(parts[0])
+            lua_type = luadoc.parse_type(parts[0])
             name = parts[1]
             desc = ' '.join(parts[2:])
 
@@ -310,7 +306,7 @@ class LuaDocParser:
         parts = params.split()
 
         if len(parts) >= 2:
-            lua_type = self._parse_type(parts[0])
+            lua_type = luadoc.parse_type(parts[0])
             desc = ' '.join(parts[1:])
 
             param = LuaReturn(desc, lua_type)

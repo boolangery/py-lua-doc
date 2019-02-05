@@ -24,16 +24,6 @@ EMMY_LUA_TYPE_GRAMMAR = Grammar(
     _              = " "*
     """)
 
-# convert emmy lua types to model one
-EMMY_TYPE_TO_STD = {
-    'string': model.LuaTypes.STRING,
-    'number': model.LuaTypes.NUMBER,
-    'boolean': model.LuaTypes.BOOLEAN,
-    'function': model.LuaTypes.FUNCTION,
-    'table': model.LuaTypes.TABLE,
-    'userdata': model.LuaTypes.USERDATA,
-}
-
 
 class FuncContext:
     def __init__(self):
