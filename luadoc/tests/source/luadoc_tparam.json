@@ -1,0 +1,42 @@
+{
+    "classes": [
+        {
+            "name": "Foo.Bar",
+            "name_in_source": "",
+            "methods": [
+                {
+                    "name": "new",
+                    "short_desc": "",
+                    "desc": "",
+                    "params": [
+                        {
+                            "name": "certPath",
+                            "desc": "The certificate path",
+                            "type": {
+                                "id": "string"
+                            },
+                            "is_opt": true,
+                            "default_value": "\"defaultValue\""
+                        }
+                    ],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public"
+                }
+            ],
+            "desc": "",
+            "usage": "",
+            "inherits_from": [],
+            "fields": []
+        }
+    ],
+    "functions": [],
+    "name": "Foo.Bar",
+    "isClassMod": true,
+    "desc": "",
+    "usage": ""
+}

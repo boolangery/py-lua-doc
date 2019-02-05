@@ -15,7 +15,8 @@
                             "type": {
                                 "id": "any"
                             },
-                            "is_opt": false
+                            "is_opt": false,
+                            "default_value": ""
                         }
                     ],
                     "returns": [],
@@ -37,7 +38,8 @@
                             "type": {
                                 "id": "any"
                             },
-                            "is_opt": false
+                            "is_opt": false,
+                            "default_value": ""
                         }
                     ],
                     "returns": [],

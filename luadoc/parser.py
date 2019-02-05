@@ -42,8 +42,10 @@ class LuaDocParser:
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
 
+        DocTagHandler = Dict[str, Callable[[str, Node], LuaNode or None]]
+
         # install handlers
-        self._handlers: Dict[str, Callable[[str, Node], LuaNode or None]] = {
+        self._handlers: DocTagHandler = {
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
@@ -59,13 +61,18 @@ class LuaDocParser:
             '@return': self._parse_emmy_lua_return if options.emmy_lua_syntax else self._parse_return,
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
-            '@tparam[opt]': self._parse_tparam_opt,
             '@treturn': self._parse_treturn,
             '@type': self._parse_class,
             '@usage': self._parse_usage,
             '@virtual': self._parse_virtual,
             "@vararg": self._parse_varargs,
         }
+
+        # some regex handler that will be tested after _handlers
+        self._re_handler: DocTagHandler = {
+            r'^@tparam\[opt(?:\s*=\s*([^\].]*))?\]': self._parse_tparam_opt_re
+        }
+
         self._param_type_str_to_lua_types = {
             'string': LuaTypes.STRING,
             'number': LuaTypes.NUMBER,
@@ -181,6 +188,11 @@ class LuaDocParser:
                 if parts[0].startswith('@'):
                     if parts[0] in self._handlers:
                         return self._handlers[parts[0]](parts[1] if len(parts) > 1 else "", ast_node)
+                    else:
+                        for regex, re_handler in self._re_handler.items():
+                            m = re.match(regex, parts[0])
+                            if m:
+                                re_handler(parts[1] if len(parts) > 1 else "", ast_node, m)
                 elif not self._usage_in_progress:
                     # its just a string
                     self._pending_str.append(text)
@@ -241,7 +253,7 @@ class LuaDocParser:
         else:
             raise SyntaxException("Invalid visibility string: " + string)
 
-    def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False):
+    def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False, default_value: str = ""):
         parts = params.split()
 
         if len(parts) > 2:
@@ -250,6 +262,7 @@ class LuaDocParser:
             desc = ' '.join(parts[2:])
 
             param = LuaParam(name, desc, lua_type, is_opt)
+            param.default_value = default_value
 
             # if function pending, add param to it
             if self._pending_function:
@@ -260,8 +273,8 @@ class LuaDocParser:
             raise SyntaxException('@tparam expect two parameters')
 
     # noinspection PyUnusedLocal
-    def _parse_tparam_opt(self, params: str, ast_node: Node):
-        self._parse_tparam(params, ast_node, True)
+    def _parse_tparam_opt_re(self, params: str, ast_node: Node, match):
+        self._parse_tparam(params, ast_node, True, str(match.group(1)))
 
     # noinspection PyUnusedLocal
     def _parse_param(self, params: str, ast_node: Node):

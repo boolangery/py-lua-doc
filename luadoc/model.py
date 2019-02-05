@@ -152,6 +152,7 @@ class LuaParam(LuaNode):
         self.desc = desc
         self.type = lua_type
         self.is_opt = is_opt
+        self.default_value: any = ""
 
 
 class LuaReturn(LuaNode):

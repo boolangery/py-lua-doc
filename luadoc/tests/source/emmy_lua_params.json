@@ -13,7 +13,8 @@
                         "id": "custom",
                         "name": "Car"
                     },
-                    "is_opt": false
+                    "is_opt": false,
+                    "default_value": ""
                 },
                 {
                     "name": "n",
@@ -21,7 +22,8 @@
                     "type": {
                         "id": "number"
                     },
-                    "is_opt": false
+                    "is_opt": false,
+                    "default_value": ""
                 }
             ],
             "returns": [],

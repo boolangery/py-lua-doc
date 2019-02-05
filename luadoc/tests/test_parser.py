@@ -36,3 +36,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_emmy_lua_params(self):
         self.make_test_from_sources("emmy_lua_params")
+
+    def test_luadoc_tparam(self):
+        self.make_test_from_sources("luadoc_tparam")
