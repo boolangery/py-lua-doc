@@ -231,7 +231,7 @@ class LuaDocParser:
             model, desc = emmylua.parse_param_field(params)
             self._pending_overload.append(model)
         except Exception:
-            raise SyntaxException('invalid @overload field: ' + params)
+            logging.error("invalid @overload field: @overload %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_class_mod(self, params: str, ast_node: Node) -> LuaModule:
@@ -251,7 +251,7 @@ class LuaDocParser:
         if string in LuaVisibility_from_str:
             return LuaVisibility_from_str[string]
         else:
-            raise SyntaxException("Invalid visibility string: " + string)
+            raise Exception("invalid visibility string " + string)
 
     def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False, default_value: str = ""):
         parts = params.split()
@@ -270,7 +270,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         else:
-            raise SyntaxException('@tparam expect two parameters')
+            logging.error("invalid @tparam tag: @tparam %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_tparam_opt_re(self, params: str, ast_node: Node, match):
@@ -287,7 +287,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         else:
-            raise SyntaxException('@param expect one parameters')
+            logging.error("invalid @param tag: @param %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_param(self, params: str, ast_node: Node):
@@ -306,7 +306,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         except Exception:
-            raise SyntaxException('invalid @param field: ' + params)
+            logging.error("invalid @param tag: @param %s", params)
 
     def _parse_string_param(self, params: str):
         self._parse_tparam("string " + params)
@@ -330,7 +330,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            raise SyntaxException('@treturn expect at least two parameters (%s)' % str(params))
+            logging.error("invalid @treturn tag: @treturn %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_return(self, params: str, ast_node: Node):
@@ -347,7 +347,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            raise SyntaxException('@return expect one parameter')
+            logging.error("invalid @return tag: @return %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_return(self, params: str, ast_node: Node):
@@ -361,7 +361,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(lua_return)
         except Exception:
-            raise SyntaxException('invalid @return field: ' + params)
+            logging.error("invalid @return tag: @return %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_virtual(self, params: str, ast_node: Node):
@@ -382,7 +382,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         except Exception:
-            raise SyntaxException('invalid @param field: ' + params)
+            logging.error("invalid @param tag: @param %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_abstract(self, params: str, ast_node: Node):
@@ -407,7 +407,8 @@ class LuaDocParser:
             parts = params.split(' ', 2)  # split visibility and field name
 
             if len(parts) < 3:
-                raise SyntaxException("@field expect at least a visibility, a name and a type")
+                logging.error("invalid @field tag: @field %s", params)
+                return
 
             field_visibility: LuaVisibility = self._parse_visibility(parts[0])
             field_name: str = parts[1]
@@ -423,7 +424,7 @@ class LuaDocParser:
 
             return field
         except Exception:
-            raise SyntaxException('invalid @field tag')
+            logging.error("invalid @field tag: @field %s", params)
 
     def _parse_function(self, params: str, ast_node: Node) -> LuaFunction:
         match = LuaDocParser.DOC_CLASS_RE.search(params)
@@ -434,7 +435,7 @@ class LuaDocParser:
         if match.group(1):  # function name provided
             return LuaFunction(match.group(1))
         else:
-            raise SyntaxException('@function invalid statement')
+            logging.error("invalid @function tag: @function %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_private(self, params: str, ast_node: Node):
@@ -449,6 +450,7 @@ class LuaDocParser:
             self._pending_function[-1].visibility = LuaVisibility.PROTECTED
         else:
             self._pending_qualifiers.append(LuaProtectedQualifier())
+
 
 def get_lua_function_name(node: Node):
     """
@@ -613,7 +615,6 @@ class TreeVisitor:
             elif isinstance(arg, nodes.Varargs):
                 doc_node.params.append(LuaParam(name="...", desc=""))
 
-
     # ####################################################################### #
     # Checking doc consistency                                                #
     # ####################################################################### #
@@ -621,17 +622,16 @@ class TreeVisitor:
         if isinstance(func_ast_node, Function):
             # only check if there are too many documented node and consistency
             if len(func_doc_node.params) > len(func_ast_node.args):
-                raise SyntaxException('function: "%s": too many documented params: %s'
-                                      % (func_doc_node.name,
-                                         ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]])))
+                logging.error('function: "%s": too many documented params: %s', func_doc_node.name,
+                              ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]]))
 
             args_map = zip(func_doc_node.params, func_ast_node.args)
 
             for doc, ast in args_map:
                 if type(ast) != Varargs:
                     if doc.name != ast.id:
-                        raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
-                                              % (func_doc_node.name, doc.name, ast.id))
+                        logging.error('function: "%s": doc param found "%s", expected "%s"',
+                                      func_doc_node.name, doc.name, ast.id)
 
     def _check_usage_field(self, usage: str):
         if len(usage) > 0:
