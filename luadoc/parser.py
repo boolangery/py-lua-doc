@@ -189,12 +189,12 @@ class LuaDocParser:
             if parts:
                 if parts[0].startswith('@'):
                     if parts[0] in self._handlers:
-                        return self._handlers[parts[0]](parts[1] if len(parts) > 1 else "", ast_node)
+                        return self._handlers[parts[0]](parts[1].strip() if len(parts) > 1 else "", ast_node)
                     else:
                         for regex, re_handler in self._re_handler.items():
                             m = re.match(regex, parts[0])
                             if m:
-                                re_handler(parts[1] if len(parts) > 1 else "", ast_node, m)
+                                re_handler(parts[1].strip() if len(parts) > 1 else "", ast_node, m)
                 elif not self._usage_in_progress:
                     # its just a string
                     self._pending_str.append(text)
@@ -461,13 +461,30 @@ class LuaDocParser:
             self._pending_qualifiers.append(LuaProtectedQualifier())
 
 
-def get_lua_function_name(node: Node):
+def read_index(index: nodes.Index) -> (str, str):
+    """
+    Get the idx and value part of an nodes.Index as str.
+    """
+    idx = ""
+    value = ""
+
+    if isinstance(index.idx, Name):
+        idx = index.idx.id
+    elif isinstance(index.idx, String):
+        idx = index.idx.s
+    if isinstance(index.value, Name):
+        value = index.value.id
+
+    return idx, value
+
+
+def get_lua_function_name(node: Function):
     """
     Retrieve the function name from an ast function node.
     """
     if isinstance(node, Function):
         if isinstance(node.name, Index):
-            return node.name.idx.id
+            return read_index(node.name)[0]
         else:
             return node.name.id
     return "unknown"
@@ -571,7 +588,7 @@ class TreeVisitor:
         elif isinstance(ast_node, Function):
             if isinstance(ast_node.name, Index):
                 # for now handle only foo.bar syntax
-                idx, value = self._read_index(ast_node.name)
+                idx, value = read_index(ast_node.name)
 
                 class_name = value
                 func_name = idx
@@ -586,23 +603,6 @@ class TreeVisitor:
             self._function_list.append(ldoc_node)
 
         self._auto_private(ldoc_node)
-
-    def _read_index(self, index: nodes.Index) -> (str, str):
-        """
-        Get the idx and value part of an nodes.Index as str.
-        """
-        idx = ""
-        value = ""
-
-        if isinstance(index.idx, Name):
-            idx = index.idx.id
-        elif isinstance(index.idx, String):
-            idx = index.idx.s
-        if isinstance(index.value, Name):
-            value = index.value.id
-
-        return idx, value
-
 
     def _auto_private(self, func: LuaFunction):
         """
