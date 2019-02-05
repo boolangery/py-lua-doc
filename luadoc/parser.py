@@ -571,18 +571,38 @@ class TreeVisitor:
         elif isinstance(ast_node, Function):
             if isinstance(ast_node.name, Index):
                 # for now handle only foo.bar syntax
-                if isinstance(ast_node.name.idx, Name) and isinstance(ast_node.name.value, Name):
-                    class_name = ast_node.name.value.id
-                    func_name = ast_node.name.idx.id
+                idx, value = self._read_index(ast_node.name)
 
-                    ldoc_node.name = func_name
-                    ldoc_node.is_static = True
-                    if class_name in self._class_map:
-                        self._class_map[class_name].methods.append(ldoc_node)
+                class_name = value
+                func_name = idx
+                ldoc_node.name = func_name
+                ldoc_node.is_static = True
+                if class_name in self._class_map:
+                    self._class_map[class_name].methods.append(ldoc_node)
+                elif self._module and not self._module.isClassMod:
+                    self._module.functions.append(ldoc_node)
+
         else:
             self._function_list.append(ldoc_node)
 
         self._auto_private(ldoc_node)
+
+    def _read_index(self, index: nodes.Index) -> (str, str):
+        """
+        Get the idx and value part of an nodes.Index as str.
+        """
+        idx = ""
+        value = ""
+
+        if isinstance(index.idx, Name):
+            idx = index.idx.id
+        elif isinstance(index.idx, String):
+            idx = index.idx.s
+        if isinstance(index.value, Name):
+            value = index.value.id
+
+        return idx, value
+
 
     def _auto_private(self, func: LuaFunction):
         """
