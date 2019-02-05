@@ -523,16 +523,17 @@ class TreeVisitor:
 
         self._class_map[ldoc_node.name_in_source] = ldoc_node
 
-    def _add_function(self, ldoc_node: LuaFunction, ast_node):
+    def _add_function(self, ldoc_node: LuaFunction, ast_node: Function or Assign):
         """ Called when a LuaFunction is added.
             Check if informations must be added directly from source code.
             Add the function in pending list or in a class.
         """
-        # check if we need to add infos
-        if type(ast_node.name) == Name and ast_node.name.id:
-            # must be completed by code ?
-            if ldoc_node.name == '':
-                ldoc_node.name = ast_node.name.id
+        # check if we need to deduce ldoc_node.name from ast_node
+        if not ldoc_node.name:
+            if type(ast_node.name) == Name and ast_node.name.id:
+                # must be completed by code ?
+                if ldoc_node.name == '':
+                    ldoc_node.name = ast_node.name.id
 
         # check consistency
         self._check_function_args(ldoc_node, ast_node)
@@ -592,22 +593,21 @@ class TreeVisitor:
     # ####################################################################### #
     # Checking doc consistency                                                #
     # ####################################################################### #
-    def _check_function_args(self, func_doc_node, func_ast_node):
-        # only check if there are too many documented node and consistency
-        if len(func_doc_node.params) > len(func_ast_node.args):
-            raise SyntaxException('function: "%s": too many documented params: %s'
-                                  % (func_doc_node.name,
-                                     ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]])))
+    def _check_function_args(self, func_doc_node: LuaFunction, func_ast_node: Node):
+        if isinstance(func_ast_node, Function):
+            # only check if there are too many documented node and consistency
+            if len(func_doc_node.params) > len(func_ast_node.args):
+                raise SyntaxException('function: "%s": too many documented params: %s'
+                                      % (func_doc_node.name,
+                                         ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]])))
 
-        args_map = zip(func_doc_node.params, func_ast_node.args)
+            args_map = zip(func_doc_node.params, func_ast_node.args)
 
-        for doc, ast in args_map:
-            if type(ast) != Varargs:
-                if doc.name != ast.id:
-                    raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
-                                          % (func_doc_node.name, doc.name, ast.id))
-
-        pass
+            for doc, ast in args_map:
+                if type(ast) != Varargs:
+                    if doc.name != ast.id:
+                        raise SyntaxException('function: "%s": doc param found "%s", expected "%s"'
+                                              % (func_doc_node.name, doc.name, ast.id))
 
     def _check_usage_field(self, usage: str):
         if len(usage) > 0:
