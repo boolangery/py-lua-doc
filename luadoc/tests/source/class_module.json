@@ -59,7 +59,7 @@
     ],
     "functions": [],
     "name": "Account",
-    "isClassMod": true,
+    "is_class_mod": true,
     "desc": "",
     "usage": ""
 }

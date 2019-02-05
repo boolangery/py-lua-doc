@@ -212,7 +212,7 @@ class LuaModule(LuaNode):
         self.classes = []
         self.functions = []
         self.name = name
-        self.isClassMod = False
+        self.is_class_mod = False
         self.desc = ''
         self.usage = ''
 

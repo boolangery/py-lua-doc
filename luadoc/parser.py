@@ -245,7 +245,7 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_class_mod(self, params: str, ast_node: Node) -> LuaModule:
         module = LuaModule(params)
-        module.isClassMod = True
+        module.is_class_mod = True
         module.desc = '\n'.join(self._pending_str)
 
         if self._usage_in_progress:
@@ -516,7 +516,7 @@ class TreeVisitor:
         else:
             model: LuaModule = LuaModule('unknown')
 
-        if model.isClassMod:
+        if model.is_class_mod:
             if len(self._class_map) != 1:
                 raise SyntaxException('in a @classmod, only one class is allowed')
 
@@ -579,7 +579,7 @@ class TreeVisitor:
                 ldoc_node.is_static = True
                 if class_name in self._class_map:
                     self._class_map[class_name].methods.append(ldoc_node)
-                elif self._module and not self._module.isClassMod:
+                elif self._module and not self._module.is_class_mod:
                     self._module.functions.append(ldoc_node)
 
         else:

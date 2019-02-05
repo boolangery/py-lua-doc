@@ -39,7 +39,7 @@
     ],
     "functions": [],
     "name": "classes",
-    "isClassMod": false,
+    "is_class_mod": false,
     "desc": "",
     "usage": ""
 }
