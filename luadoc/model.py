@@ -211,10 +211,24 @@ class LuaModule(LuaNode):
         # list of LuaStatement
         self.classes = []
         self.functions = []
+        self.data = []
         self.name = name
         self.is_class_mod = False
         self.desc = ''
         self.usage = ''
+
+
+class LuaDictField(LuaNode):
+    def __init__(self, name: str, desc: str):
+        self.name: str = name
+        self.desc: str = desc
+
+
+class LuaDict(LuaNode):
+    def __init__(self, name: str, desc: str):
+        self.name: str = name
+        self.desc: str = desc
+        self.fields: List[LuaDictField] = []
 
 
 class LuaQualifier:

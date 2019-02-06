@@ -7,6 +7,7 @@ from luadoc.model import *
 from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
 import luadoc.luadoc as luadoc
+import luadoc.export as export
 
 
 class DocOptions:
@@ -52,6 +53,7 @@ class LuaDocParser:
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
             '@deprecated': self._parse_deprecated,
+            '@export': self._parse_export,
             '@field': self._parse_class_field,
             '@function': self._parse_function,
             '@int': self._parse_int_param,
@@ -408,6 +410,10 @@ class LuaDocParser:
             self._pending_qualifiers.append(LuaDeprecatedQualifier())
 
     # noinspection PyUnusedLocal
+    def _parse_export(self, params: str, ast_node: Node):
+        export.parse_export(ast_node)
+
+    # noinspection PyUnusedLocal
     def _parse_class_field(self, params: str, ast_node: Node):
         """
         ---@field [public|protected|private] field_name FIELD_TYPE[|OTHER_TYPE] [@comment]
@@ -502,6 +508,7 @@ class TreeVisitor:
             LuaClass: self._add_class,
             LuaFunction: self._add_function,
             LuaModule: self._add_module,
+            LuaDict: self._add_dict,
         }
 
     def visit(self, node):
@@ -622,6 +629,11 @@ class TreeVisitor:
             self._module = module
         else:
             raise SyntaxException('only one @module is allowed by file')
+
+    # noinspection PyUnusedLocal
+    def _add_dict(self, data: LuaDict, ast_node):
+        self._module.data.append(data)
+
 
     def _process_ldoc(self, ast_node):
         """Sort ldoc nodes by type in map"""
@@ -823,9 +835,15 @@ class TreeVisitor:
     def visit_Table(self, node):
         self.visit(node.fields)
 
-    def visit_Field(self, node):
+    def visit_Field(self, node: nodes.Field):
         self.visit(node.key)
         self.visit(node.value)
+
+        if self._module and self._module.data:
+            current_data = self._module.data[-1]
+            field_name = node.key.id
+            field_desc = "\n".join([c.s.strip(" -") for c in node.comments])
+            current_data.fields.append(LuaDictField(field_name, field_desc))
 
     def visit_Return(self, node):
         self.visit(node.values)
