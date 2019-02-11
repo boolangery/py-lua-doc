@@ -127,6 +127,15 @@ class LuaDocParser:
             if node is not None:
                 nodes.append(node)
 
+        if self._exported:
+            if (isinstance(ast_node, LocalFunction) or
+                    isinstance(ast_node, Function)) and not self._pending_function:
+                function_name = astutils.get_identifier(ast_node)
+                short_desc, desc = self._get_short_desc_and_desc()
+                func = LuaFunction(name=function_name, short_desc=short_desc, desc=desc)
+                self._pending_function.append(func)
+                nodes.append(func)
+
         # pending data
         if self._pending_data:
             lua_data: LuaData = self._pending_data[-1]

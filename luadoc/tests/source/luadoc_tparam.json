@@ -39,6 +39,7 @@
     "data": [],
     "name": "Foo.Bar",
     "is_class_mod": true,
+    "short_desc": "",
     "desc": "",
     "usage": ""
 }

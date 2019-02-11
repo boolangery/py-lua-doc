@@ -53,6 +53,7 @@
     ],
     "name": "classes",
     "is_class_mod": false,
-    "desc": "",
+    "short_desc": "",
+    "desc": "a module containing some classes.",
     "usage": ""
 }

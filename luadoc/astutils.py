@@ -40,8 +40,9 @@ class IdentifierVisitor:
         self.visit(node.body)
 
     def visit_LocalFunction(self, node: LocalFunction):
-        self.visit(node.args)
-        self.visit(node.body)
+        # self.visit(node.args)
+        self.visit(node.name)
+        # self.visit(node.body)
 
     def visit_Method(self, node: Method):
         self.visit(node.source)
