@@ -48,6 +48,7 @@ class LuaDocParser:
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
         self._exported: bool = False  # comment contains an @export tag ?
+        self._namespace: str = ""  # put into namespace ?
 
         DocTagHandler = Dict[str, Callable[[str, Node], LuaNode or None]]
 
@@ -62,6 +63,7 @@ class LuaDocParser:
             '@function': self._parse_function,
             '@int': self._parse_int_param,
             '@module': self._parse_module,
+            '@namespace': self._parse_namespace,
             '@overload': self._parse_overload,
             '@param': self._parse_emmy_lua_param if options.emmy_lua_syntax else self._parse_param,
             '@private': self._parse_private,
@@ -181,6 +183,14 @@ class LuaDocParser:
             if self._usage_str:
                 self._pending_module[-1].usage = '\n'.join(self._usage_str)
 
+        if self._namespace:
+            if self._pending_class:
+                self._pending_class[-1].name = ".".join([self._namespace, self._pending_class[-1].name])
+            if self._pending_function:
+                self._pending_function[-1].name = ".".join([self._namespace, self._pending_function[-1].name])
+            if self._pending_data:
+                self._pending_data[-1].name = ".".join([self._namespace, self._pending_data[-1].name])
+
         return nodes, self._pending_str
 
     def _create_function_overload(self, original: LuaFunction, overload_def: LuaTypeCallable) -> LuaFunction:
@@ -251,6 +261,10 @@ class LuaDocParser:
     # noinspection PyUnusedLocal
     def _parse_module(self, params: str, ast_node: Node):
         return LuaModule(params)
+
+    # noinspection PyUnusedLocal
+    def _parse_namespace(self, params: str, ast_node: Node):
+        self._namespace = params
 
     # noinspection PyUnusedLocal
     def _parse_overload(self, params: str, ast_node: Node):
@@ -869,11 +883,11 @@ class TreeVisitor:
         self.visit(node.key)
         self.visit(node.value)
 
-        if self._module and self._module.data:
-            current_data = self._module.data[-1]
-            field_name = node.key.id
-            field_desc = "\n".join([c.s.strip(" -") for c in node.comments])
-            current_data.fields.append(LuaDictField(field_name, field_desc))
+        # if self._module and self._module.data:
+        #     current_data = self._module.data[-1]
+        #     field_name = node.key.id
+        #     field_desc = "\n".join([c.s.strip(" -") for c in node.comments])
+        #     current_data.fields.append(LuaDictField(field_name, field_desc))
 
     def visit_Return(self, node):
         self.visit(node.values)
