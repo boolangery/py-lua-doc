@@ -209,23 +209,23 @@ class LuaModule(LuaNode):
     def __init__(self, name: str):
         LuaNode.__init__(self)
         # list of LuaStatement
-        self.filename = ""
-        self.classes = []
-        self.functions = []
-        self.data = []
-        self.name = name
-        self.is_class_mod = False
-        self.short_desc = ''
-        self.desc = ''
-        self.usage = ''
+        self.filename: str = ""
+        self.classes: List[LuaTypeCallable] = []
+        self.functions: List[LuaFunction] = []
+        self.data: List[LuaData] = []
+        self.name: str = name
+        self.is_class_mod: bool = False
+        self.short_desc: str = ''
+        self.desc: str = ''
+        self.usage: str = ''
 
 
 class LuaData(LuaNode):
     def __init__(self, name: str):
-        self.name = name
-        self.short_desc = ""
-        self.desc = ""
-        self.visibility = LuaVisibility.PRIVATE
+        self.name: str = name
+        self.short_desc: str = ""
+        self.desc: str = ""
+        self.visibility: LuaVisibility = LuaVisibility.PRIVATE
 
 
 class LuaDictField(LuaData):
@@ -241,11 +241,21 @@ class LuaDict(LuaData):
         self.desc: str = desc
         self.fields: List[LuaDictField] = []
 
+    def to_json(self):
+        return {
+            "table": self.__dict__
+        }
+
 
 class LuaValue(LuaData):
     def __init__(self, name: str, lua_type: LuaType):
         LuaData.__init__(self, name)
         self.type = lua_type
+
+    def to_json(self):
+        return {
+            "value": self.__dict__
+        }
 
 
 class LuaQualifier:
