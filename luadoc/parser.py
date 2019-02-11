@@ -702,10 +702,14 @@ class TreeVisitor:
 
     # noinspection PyUnusedLocal
     def _add_dict(self, data: LuaDict, ast_node):
+        if not self._module:
+            raise SyntaxException('missing @module')
         self._module.data.append(data)
 
     # noinspection PyUnusedLocal
     def _add_data(self, data: LuaData, ast_node):
+        if not self._module:
+            raise SyntaxException('missing @module')
         self._module.data.append(data)
 
     def _process_ldoc(self, ast_node):
