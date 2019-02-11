@@ -1,0 +1,38 @@
+{
+    "filename": "",
+    "classes": [],
+    "functions": [],
+    "data": [
+        {
+            "value": {
+                "name": "MAX_THREAD",
+                "short_desc": "",
+                "desc": "",
+                "visibility": "public",
+                "constant": true,
+                "type": {
+                    "id": "number"
+                },
+                "value": 4
+            }
+        },
+        {
+            "value": {
+                "name": "currentThreadId",
+                "short_desc": "",
+                "desc": "",
+                "visibility": "public",
+                "constant": false,
+                "type": {
+                    "id": "number"
+                },
+                "value": null
+            }
+        }
+    ],
+    "name": "utils",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": ""
+}

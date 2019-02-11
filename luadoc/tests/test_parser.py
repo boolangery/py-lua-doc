@@ -42,3 +42,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_full_module(self):
         self.make_test_from_sources("full_module")
+
+    def test_export_value(self):
+        self.make_test_from_sources("export_value")

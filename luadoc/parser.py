@@ -51,6 +51,7 @@ class LuaDocParser:
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
         self._exported: bool = False  # comment contains an @export tag ?
+        self._constant: bool = False  # is the expression constant ?
         self._namespace: str = ""  # put into namespace ?
 
         # install handlers
@@ -58,6 +59,7 @@ class LuaDocParser:
             '@abstract': self._parse_abstract,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
+            '@constant': self._parse_constant,
             '@deprecated': self._parse_deprecated,
             '@export': self._parse_export,
             '@field': self._parse_class_field,
@@ -121,6 +123,7 @@ class LuaDocParser:
         self._pending_overload = []
         self._pending_data = []
         self._exported = False
+        self._constant = False
 
         doc_nodes: List[LuaNode] = []
         for comment in comments:
@@ -146,6 +149,8 @@ class LuaDocParser:
 
             if self._exported:
                 lua_data.visibility = LuaVisibility.PUBLIC
+
+            lua_data.constant = self._constant
 
         # handle pending doc_nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
@@ -307,6 +312,11 @@ class LuaDocParser:
 
         return module
 
+    # noinspection PyUnusedLocal
+    def _parse_constant(self, params: str, ast_node: Node) -> LuaModule:
+        self._exported = True  # @constant trigger @export
+        self._constant = True
+
     # noinspection PyMethodMayBeStatic
     def _parse_visibility(self, string: str) -> LuaVisibility:
         if string in LuaVisibility_from_str:
@@ -403,8 +413,10 @@ class LuaDocParser:
         # noinspection PyBroadException
         try:
             identifier = astutils.get_identifier(ast_node)
+            value = astutils.get_value(ast_node)
             doc_type, desc = emmylua.parse_param_field(params)
             lua_data = LuaValue(identifier, doc_type)
+            lua_data.value = value
             self._pending_data.append(lua_data)
             return lua_data
         except Exception as e:
@@ -912,10 +924,11 @@ class TreeVisitor:
     # ####################################################################### #
     # Types and Values                                                        #
     # ####################################################################### #
-    def visit_Table(self, node):
+    def visit_Table(self, node: nodes.Table):
         self.visit(node.fields)
 
     def visit_Field(self, node: nodes.Field):
+        self._process_ldoc(node)
         self.visit(node.key)
         self.visit(node.value)
 

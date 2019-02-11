@@ -41,13 +41,17 @@
     "functions": [],
     "data": [
         {
-            "name": "Bonzo",
-            "short_desc": "a useful class.",
-            "desc": "",
-            "visibility": "private",
-            "type": {
-                "id": "custom",
-                "name": "Bonzo"
+            "value": {
+                "name": "Bonzo",
+                "short_desc": "a useful class.",
+                "desc": "",
+                "visibility": "private",
+                "constant": false,
+                "type": {
+                    "id": "custom",
+                    "name": "Bonzo"
+                },
+                "value": null
             }
         }
     ],

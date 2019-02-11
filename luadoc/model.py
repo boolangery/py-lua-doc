@@ -226,6 +226,7 @@ class LuaData(LuaNode):
         self.short_desc: str = ""
         self.desc: str = ""
         self.visibility: LuaVisibility = LuaVisibility.PRIVATE
+        self.constant: bool = False
 
 
 class LuaDictField(LuaData):
@@ -251,6 +252,8 @@ class LuaValue(LuaData):
     def __init__(self, name: str, lua_type: LuaType):
         LuaData.__init__(self, name)
         self.type = lua_type
+        self.value: any = None
+
 
     def to_json(self):
         return {
