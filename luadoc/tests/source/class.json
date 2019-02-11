@@ -1,8 +1,9 @@
 {
+    "filename": "",
     "classes": [
         {
             "name": "Bonzo",
-            "name_in_source": "Bonzo",
+            "name_in_source": "",
             "methods": [
                 {
                     "name": "one",
@@ -38,6 +39,18 @@
         }
     ],
     "functions": [],
+    "data": [
+        {
+            "name": "Bonzo",
+            "short_desc": "a useful class.",
+            "desc": "",
+            "visibility": "private",
+            "type": {
+                "id": "custom",
+                "name": "Bonzo"
+            }
+        }
+    ],
     "name": "classes",
     "is_class_mod": false,
     "desc": "",

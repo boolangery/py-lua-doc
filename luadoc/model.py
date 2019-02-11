@@ -209,6 +209,7 @@ class LuaModule(LuaNode):
     def __init__(self, name: str):
         LuaNode.__init__(self)
         # list of LuaStatement
+        self.filename = ""
         self.classes = []
         self.functions = []
         self.data = []
@@ -218,17 +219,32 @@ class LuaModule(LuaNode):
         self.usage = ''
 
 
-class LuaDictField(LuaNode):
+class LuaData(LuaNode):
+    def __init__(self, name: str):
+        self.name = name
+        self.short_desc = ""
+        self.desc = ""
+        self.visibility = LuaVisibility.PRIVATE
+
+
+class LuaDictField(LuaData):
     def __init__(self, name: str, desc: str):
+        LuaData.__init__(self, name)
         self.name: str = name
         self.desc: str = desc
 
 
-class LuaDict(LuaNode):
+class LuaDict(LuaData):
     def __init__(self, name: str, desc: str):
-        self.name: str = name
+        LuaData.__init__(self, name)
         self.desc: str = desc
         self.fields: List[LuaDictField] = []
+
+
+class LuaValue(LuaData):
+    def __init__(self, name: str, lua_type: LuaType):
+        LuaData.__init__(self, name)
+        self.type = lua_type
 
 
 class LuaQualifier:

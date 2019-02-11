@@ -17,7 +17,7 @@ class ParserTestCase(unittest.TestCase):
         lua_source = lua_file.read()
         exp_doc_tree = tree_file.read()
 
-        module = DocParser().build_module_doc_model(lua_source)
+        module = DocParser().build_module_doc_model(lua_source, "")
         json_doc_tree = to_pretty_json(module)
 
         lua_file.close()

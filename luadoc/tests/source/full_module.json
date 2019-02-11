@@ -1,4 +1,5 @@
 {
+    "filename": "",
     "classes": [
         {
             "name": "pl.List",
@@ -96,6 +97,7 @@
             "visibility": "public"
         }
     ],
+    "data": [],
     "name": "pl.stringx",
     "is_class_mod": false,
     "desc": "",

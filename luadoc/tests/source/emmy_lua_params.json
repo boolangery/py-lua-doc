@@ -1,4 +1,5 @@
 {
+    "filename": "",
     "classes": [],
     "functions": [
         {
@@ -35,6 +36,7 @@
             "visibility": "public"
         }
     ],
+    "data": [],
     "name": "unknown",
     "is_class_mod": false,
     "desc": "",

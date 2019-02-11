@@ -1,4 +1,5 @@
 {
+    "filename": "",
     "classes": [
         {
             "name": "Foo.Bar",
@@ -35,6 +36,7 @@
         }
     ],
     "functions": [],
+    "data": [],
     "name": "Foo.Bar",
     "is_class_mod": true,
     "desc": "",

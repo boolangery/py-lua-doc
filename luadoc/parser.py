@@ -1,5 +1,6 @@
-import logging
+import os
 import re
+import logging
 from luaparser import ast
 from luaparser.astnodes import *
 import luaparser.astnodes as nodes
@@ -8,6 +9,7 @@ from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
 import luadoc.luadoc as luadoc
 import luadoc.export as export
+import luadoc.astutils as astutils
 
 
 class DocOptions:
@@ -42,8 +44,10 @@ class LuaDocParser:
         self._pending_class: List[LuaClass] = []
         self._pending_module: List[LuaModule] = []
         self._pending_overload: List[LuaTypeCallable] = []
+        self._pending_data: List[LuaData] = []
         self._usage_in_progress: bool = False
         self._usage_str: List[str] = []
+        self._exported: bool = False  # comment contains an @export tag ?
 
         DocTagHandler = Dict[str, Callable[[str, Node], LuaNode or None]]
 
@@ -66,7 +70,7 @@ class LuaDocParser:
             '@string': self._parse_string_param,
             '@tparam': self._parse_tparam,
             '@treturn': self._parse_treturn,
-            '@type': self._parse_class,
+            '@type': self._parse_type,
             '@usage': self._parse_usage,
             '@virtual': self._parse_virtual,
             "@vararg": self._parse_varargs,
@@ -90,6 +94,14 @@ class LuaDocParser:
             'table': LuaTypes.TABLE,
         }
 
+    def _get_short_desc_and_desc(self) -> (str, str):
+        if self._pending_str:
+            short_desc = self._pending_str.pop(0)
+        else:
+            short_desc = ''
+        long_desc = '\n'.join(self._pending_str)
+        return short_desc, long_desc
+
     def parse_comments(self, ast_node: Node):
         comments = [c.s for c in ast_node.comments]
 
@@ -104,6 +116,8 @@ class LuaDocParser:
         self._usage_in_progress = False
         self._usage_str = []
         self._pending_overload = []
+        self._pending_data = []
+        self._exported = False
 
         nodes: List[LuaNode] = []
         for comment in comments:
@@ -111,24 +125,26 @@ class LuaDocParser:
             if node is not None:
                 nodes.append(node)
 
+        # pending data
+        if self._pending_data:
+            lua_data: LuaData = self._pending_data[-1]
+            short_desc, desc = self._get_short_desc_and_desc()
+            lua_data.short_desc = short_desc
+            lua_data.desc = desc
+
+            if self._exported:
+                lua_data.visibility = LuaVisibility.PUBLIC
+
         # handle pending nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
             # methods
             if type(ast_node) == Method:
-                if self._pending_str:
-                    short_desc = self._pending_str.pop(0)
-                else:
-                    short_desc = ''
-                long_desc = '\n'.join(self._pending_str)
+                short_desc, long_desc = self._get_short_desc_and_desc()
                 nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
             # Detect static method: a Function with an Index as name
             if type(ast_node) == Function:
-                if self._pending_str:
-                    short_desc = self._pending_str.pop(0)
-                else:
-                    short_desc = ''
-                long_desc = '\n'.join(self._pending_str)
+                short_desc, long_desc = self._get_short_desc_and_desc()
                 nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
         # handle function pending elements
@@ -344,6 +360,20 @@ class LuaDocParser:
             logging.error("invalid @treturn tag: @treturn %s", params)
 
     # noinspection PyUnusedLocal
+    def _parse_type(self, params: str, ast_node: Node):
+        """
+        --@type MY_TYPE [@comment]
+        """
+        try:
+            identifier = astutils.get_identifier(ast_node)
+            doc_type, desc = emmylua.parse_param_field(params)
+            lua_data = LuaValue(identifier, doc_type)
+            self._pending_data.append(lua_data)
+            return lua_data
+        except Exception as e:
+            logging.error("invalid @type tag: @type %s", params)
+
+    # noinspection PyUnusedLocal
     def _parse_return(self, params: str, ast_node: Node):
         parts = params.split()
 
@@ -411,7 +441,7 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_export(self, params: str, ast_node: Node):
-        export.parse_export(ast_node)
+        self._exported = True
 
     # noinspection PyUnusedLocal
     def _parse_class_field(self, params: str, ast_node: Node):
@@ -497,9 +527,10 @@ def get_lua_function_name(node: Function):
 
 
 class TreeVisitor:
-    def __init__(self, doc_options: DocOptions):
+    def __init__(self, doc_options: DocOptions, file_path: str):
         self._doc_options = doc_options
         self.parser = LuaDocParser(self._doc_options)
+        self.file_name = os.path.basename(file_path)
 
         self._class_map = {}
         self._function_list = []
@@ -509,24 +540,18 @@ class TreeVisitor:
             LuaFunction: self._add_function,
             LuaModule: self._add_module,
             LuaDict: self._add_dict,
+            LuaData: self._add_data,
+            LuaValue: self._add_data,
         }
 
     def visit(self, node):
         if node is None:
             return
         if isinstance(node, Node):
-            # call enter node method
-            # if no visitor method found for this arg type,
-            # search in parent arg type:
-            parent_type = node.__class__
-            while parent_type != object:
-                name = 'visit_' + parent_type.__name__
-                visitor = getattr(self, name, None)
-                if visitor:
-                    visitor(node)
-                    break
-                else:
-                    parent_type = parent_type.__bases__[0]
+            name = 'visit_' + node.__class__.__name__
+            visitor = getattr(self, name, None)
+            if visitor:
+                visitor(node)
 
         elif isinstance(node, list):
             for n in node:
@@ -539,6 +564,8 @@ class TreeVisitor:
             model: LuaModule = self._module
         else:
             model: LuaModule = LuaModule('unknown')
+
+        model.filename = self.file_name
 
         if model.is_class_mod:
             if len(self._class_map) != 1:
@@ -634,6 +661,9 @@ class TreeVisitor:
     def _add_dict(self, data: LuaDict, ast_node):
         self._module.data.append(data)
 
+    # noinspection PyUnusedLocal
+    def _add_data(self, data: LuaData, ast_node):
+        self._module.data.append(data)
 
     def _process_ldoc(self, ast_node):
         """Sort ldoc nodes by type in map"""
@@ -684,7 +714,7 @@ class TreeVisitor:
     # ####################################################################### #
     # Root Nodes                                                              #
     # ####################################################################### #
-    def visit_Chunk(self, node):
+    def visit_Chunk(self, node: nodes.Chunk):
         self.visit(node.body)
 
     def visit_Block(self, node):
@@ -853,7 +883,7 @@ class DocParser:
     def __init__(self, doc_options: DocOptions = DocOptions()):
         self._doc_options = doc_options
 
-    def build_module_doc_model(self, input_src: str) -> LuaModule:
+    def build_module_doc_model(self, input_src: str, file_path: str) -> LuaModule:
         # try to get AST tree, do nothing if invalid source code is provided
         try:
             tree = ast.parse(input_src)
@@ -861,6 +891,6 @@ class DocParser:
             logging.error(str(e))
             raise
 
-        visitor = TreeVisitor(self._doc_options)
+        visitor = TreeVisitor(self._doc_options, file_path)
         visitor.visit(tree)
         return visitor.get_model()

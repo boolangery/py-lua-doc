@@ -85,7 +85,7 @@ def main():
 
     # build a filename list or use source (-s)
     if options.source:
-        model = FilesProcessor(8, doc_options).run_for_source(options.source)
+        model = FilesProcessor(8, doc_options).run_for_source(options.source, "")
     else:
         filenames = []
         if not os.path.isdir(args[0]):

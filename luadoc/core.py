@@ -40,7 +40,7 @@ class FilesProcessor:
 
         doc_parser = DocParser(self._doc_options)
 
-        return doc_parser.build_module_doc_model(file_content)
+        return doc_parser.build_module_doc_model(file_content, file_path)
 
     def run(self, files):
         logging.info(str(len(files)) + ' file(s) to process')

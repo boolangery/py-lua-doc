@@ -1,4 +1,5 @@
 {
+    "filename": "",
     "classes": [
         {
             "name": "Account",
@@ -58,6 +59,7 @@
         }
     ],
     "functions": [],
+    "data": [],
     "name": "Account",
     "is_class_mod": true,
     "desc": "",
