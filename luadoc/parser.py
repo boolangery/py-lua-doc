@@ -180,8 +180,12 @@ class LuaDocParser:
 
         # handle module pending elements
         if self._pending_module:
+            lua_module: LuaModule = self._pending_module[-1]
             if self._usage_str:
-                self._pending_module[-1].usage = '\n'.join(self._usage_str)
+                lua_module.usage = '\n'.join(self._usage_str)
+            short_desc, desc = self._get_short_desc_and_desc()
+            lua_module.short_desc = short_desc
+            lua_module.desc = desc
 
         if self._namespace:
             if self._pending_class:
@@ -260,7 +264,9 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_module(self, params: str, ast_node: Node):
-        return LuaModule(params)
+        lua_module = LuaModule(params)
+        self._pending_module.append(lua_module)
+        return lua_module
 
     # noinspection PyUnusedLocal
     def _parse_namespace(self, params: str, ast_node: Node):

@@ -215,6 +215,7 @@ class LuaModule(LuaNode):
         self.data = []
         self.name = name
         self.is_class_mod = False
+        self.short_desc = ''
         self.desc = ''
         self.usage = ''
 
