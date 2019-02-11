@@ -8,7 +8,6 @@ from luadoc.model import *
 from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
 import luadoc.luadoc as luadoc
-import luadoc.export as export
 import luadoc.astutils as astutils
 
 
@@ -23,6 +22,10 @@ class SyntaxException(Exception):
     pass
 
 
+# some custom types
+DocTagHandler = Dict[str, Callable[[str, Node], LuaNode or None]]
+
+
 class LuaDocParser:
     """ Lua doc style parser
     """
@@ -30,7 +33,7 @@ class LuaDocParser:
     FUNCTION_RE = re.compile(r'^(\w+)')
     # match: MY_TYPE: PARENT_TYPE @comment
     # match: MY_TYPE: PARENT_TYPE, TYPE2 comment
-    DOC_CLASS_RE = re.compile(r'^([\w\.]+)(?:\s*:\s*([\w\.]+(?:\s*,\s*[\w\.]+)*))?\s*@?(.*)$')
+    DOC_CLASS_RE = re.compile(r'^([\w.]+)(?:\s*:\s*([\w.]+(?:\s*,\s*[\w.]+)*))?\s*@?(.*)$')
     PARAM_RE = re.compile(r'^(\w+) *([\w+|]+) *(.*)')
 
     def __init__(self, options: DocOptions):
@@ -49,8 +52,6 @@ class LuaDocParser:
         self._usage_str: List[str] = []
         self._exported: bool = False  # comment contains an @export tag ?
         self._namespace: str = ""  # put into namespace ?
-
-        DocTagHandler = Dict[str, Callable[[str, Node], LuaNode or None]]
 
         # install handlers
         self._handlers: DocTagHandler = {
@@ -121,11 +122,11 @@ class LuaDocParser:
         self._pending_data = []
         self._exported = False
 
-        nodes: List[LuaNode] = []
+        doc_nodes: List[LuaNode] = []
         for comment in comments:
             node = self._parse_comment(comment, ast_node)
             if node is not None:
-                nodes.append(node)
+                doc_nodes.append(node)
 
         if self._exported:
             if (isinstance(ast_node, LocalFunction) or
@@ -134,7 +135,7 @@ class LuaDocParser:
                 short_desc, desc = self._get_short_desc_and_desc()
                 func = LuaFunction(name=function_name, short_desc=short_desc, desc=desc)
                 self._pending_function.append(func)
-                nodes.append(func)
+                doc_nodes.append(func)
 
         # pending data
         if self._pending_data:
@@ -146,31 +147,31 @@ class LuaDocParser:
             if self._exported:
                 lua_data.visibility = LuaVisibility.PUBLIC
 
-        # handle pending nodes
+        # handle pending doc_nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
             # methods
             if type(ast_node) == Method:
                 short_desc, long_desc = self._get_short_desc_and_desc()
-                nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
+                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
             # Detect static method: a Function with an Index as name
             if type(ast_node) == Function:
                 short_desc, long_desc = self._get_short_desc_and_desc()
-                nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
+                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
 
         # handle function pending elements
-        if nodes and type(nodes[-1]) is LuaFunction:
-            func: LuaFunction = cast(LuaFunction, nodes[-1])
+        if doc_nodes and type(doc_nodes[-1]) is LuaFunction:
+            func: LuaFunction = cast(LuaFunction, doc_nodes[-1])
 
             # handle pending qualifiers
             if self._pending_qualifiers:
                 for qualifier in self._pending_qualifiers:
                     if type(qualifier) is LuaVirtualQualifier:
-                        cast(LuaVirtualQualifier, nodes[-1]).is_virtual = True
+                        cast(LuaVirtualQualifier, doc_nodes[-1]).is_virtual = True
                     elif type(qualifier) is LuaAbstractQualifier:
-                        cast(LuaAbstractQualifier, nodes[-1]).is_abstract = True
+                        cast(LuaAbstractQualifier, doc_nodes[-1]).is_abstract = True
                     elif type(qualifier) is LuaDeprecatedQualifier:
-                        cast(LuaDeprecatedQualifier, nodes[-1]).is_deprecated = True
+                        cast(LuaDeprecatedQualifier, doc_nodes[-1]).is_deprecated = True
                     elif type(qualifier) is LuaPrivateQualifier:
                         func.visibility = LuaVisibility.PRIVATE
                     elif type(qualifier) is LuaProtectedQualifier:
@@ -185,7 +186,7 @@ class LuaDocParser:
                 self._pending_param = []
 
             for overload in self._pending_overload:
-                nodes.append(self._create_function_overload(func, overload))
+                doc_nodes.append(self._create_function_overload(func, overload))
 
         # handle module pending elements
         if self._pending_module:
@@ -204,8 +205,9 @@ class LuaDocParser:
             if self._pending_data:
                 self._pending_data[-1].name = ".".join([self._namespace, self._pending_data[-1].name])
 
-        return nodes, self._pending_str
+        return doc_nodes, self._pending_str
 
+    # noinspection PyMethodMayBeStatic
     def _create_function_overload(self, original: LuaFunction, overload_def: LuaTypeCallable) -> LuaFunction:
         overload = LuaFunction(name=original.name, short_desc=original.short_desc, desc=original.desc)
         overload.usage = original.usage
@@ -243,6 +245,7 @@ class LuaDocParser:
                     self._usage_str.append(comment[len(self._start_symbol) + 1:])
         return None
 
+    # noinspection PyUnusedLocal
     def _parse_class(self, params: str, ast_node: Node):
         """
         --@class MY_TYPE[:PARENT_TYPE] [@comment]
@@ -283,10 +286,11 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_overload(self, params: str, ast_node: Node):
+        # noinspection PyBroadException
         try:
             model, desc = emmylua.parse_param_field(params)
             self._pending_overload.append(model)
-        except Exception:
+        except Exception as e:
             logging.error("invalid @overload field: @overload %s", params)
 
     # noinspection PyUnusedLocal
@@ -303,12 +307,14 @@ class LuaDocParser:
 
         return module
 
-    def _parse_visibility(self, string: str):
+    # noinspection PyMethodMayBeStatic
+    def _parse_visibility(self, string: str) -> LuaVisibility:
         if string in LuaVisibility_from_str:
             return LuaVisibility_from_str[string]
         else:
             raise Exception("invalid visibility string " + string)
 
+    # noinspection PyUnusedLocal
     def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False, default_value: str = ""):
         parts = params.split()
 
@@ -350,6 +356,7 @@ class LuaDocParser:
         """
         param_name MY_TYPE[|other_type] [@comment]
         """
+        # noinspection PyBroadException
         try:
             parts = params.split(' ', 1)
             param_name = parts[0]
@@ -393,6 +400,7 @@ class LuaDocParser:
         """
         --@type MY_TYPE [@comment]
         """
+        # noinspection PyBroadException
         try:
             identifier = astutils.get_identifier(ast_node)
             doc_type, desc = emmylua.parse_param_field(params)
@@ -421,6 +429,7 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_return(self, params: str, ast_node: Node):
+        # noinspection PyBroadException
         try:
             doc_type, desc = emmylua.parse_param_field(params)
             lua_return = LuaReturn(desc, doc_type)
@@ -442,6 +451,7 @@ class LuaDocParser:
 
     # noinspection PyUnusedLocal
     def _parse_varargs(self, params: str, ast_node: Node):
+        # noinspection PyBroadException
         try:
             doc_type, desc = emmylua.parse_param_field(params)
             param = LuaParam("...", desc, doc_type)
@@ -477,6 +487,7 @@ class LuaDocParser:
         """
         ---@field [public|protected|private] field_name FIELD_TYPE[|OTHER_TYPE] [@comment]
         """
+        # noinspection PyBroadException
         try:
             parts = params.split(' ', 2)  # split visibility and field name
 
@@ -500,7 +511,8 @@ class LuaDocParser:
         except Exception:
             logging.error("invalid @field tag: @field %s", params)
 
-    def _parse_function(self, params: str, ast_node: Node) -> LuaFunction:
+    # noinspection PyMethodMayBeStatic
+    def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction:
         match = LuaDocParser.FUNCTION_RE.search(params)
 
         if match is None:  # empty function name
@@ -555,6 +567,7 @@ def get_lua_function_name(node: Function):
     return "unknown"
 
 
+# noinspection PyPep8Naming
 class TreeVisitor:
     def __init__(self, doc_options: DocOptions, file_path: str):
         self._doc_options = doc_options
@@ -619,8 +632,9 @@ class TreeVisitor:
     def _add_class(self, ldoc_node, ast_node):
         # try to extract class name in source in case of assignment
         if isinstance(ast_node, Assign) and len(ast_node.targets) == 1:
-            if type(ast_node.targets[0]) == Name:
-                ldoc_node.name_in_source = ast_node.targets[0].id
+            first_target: nodes.Expression = ast_node.targets[0]
+            if isinstance(first_target, nodes.Name):
+                ldoc_node.name_in_source = first_target.id
 
         self._class_map[ldoc_node.name_in_source] = ldoc_node
 
@@ -702,6 +716,7 @@ class TreeVisitor:
                 self._type_handler[type(n)](n, ast_node)
         return ldoc_nodes, pending_str
 
+    # noinspection PyMethodMayBeStatic
     def _auto_param_from_meth_ast(self, doc_node: LuaFunction, ast_node: nodes.Method):
         """
         Automatically create param doc from a Function ast node.
@@ -718,6 +733,7 @@ class TreeVisitor:
     # ####################################################################### #
     # Checking doc consistency                                                #
     # ####################################################################### #
+    # noinspection PyMethodMayBeStatic
     def _check_function_args(self, func_doc_node: LuaFunction, func_ast_node: Node):
         if isinstance(func_ast_node, Function):
             # only check if there are too many documented node and consistency
@@ -727,12 +743,13 @@ class TreeVisitor:
 
             args_map = zip(func_doc_node.params, func_ast_node.args)
 
-            for doc, ast in args_map:
-                if type(ast) != Varargs:
-                    if doc.name != ast.id:
+            for doc, ast_node in args_map:
+                if type(ast_node) != Varargs:
+                    if doc.name != ast_node.id:
                         logging.error('function: "%s": doc param found "%s", expected "%s"',
-                                      func_doc_node.name, doc.name, ast.id)
+                                      func_doc_node.name, doc.name, ast_node.id)
 
+    # noinspection PyMethodMayBeStatic
     def _check_usage_field(self, usage: str):
         if len(usage) > 0:
             try:
@@ -813,7 +830,7 @@ class TreeVisitor:
                 if isinstance(node.name, Index):
                     # for now handle only foo.bar syntax
                     if isinstance(node.name.idx, Name) and isinstance(node.name.value, Name):
-                        potential_cls_name = node.name.value.id
+                        potential_cls_name: str = node.name.value.id
                         # auto-create class doc model
                         if potential_cls_name not in self._class_map and self._function_list:
                             self._class_map[potential_cls_name] = LuaClass(potential_cls_name)
@@ -897,12 +914,6 @@ class TreeVisitor:
     def visit_Field(self, node: nodes.Field):
         self.visit(node.key)
         self.visit(node.value)
-
-        # if self._module and self._module.data:
-        #     current_data = self._module.data[-1]
-        #     field_name = node.key.id
-        #     field_desc = "\n".join([c.s.strip(" -") for c in node.comments])
-        #     current_data.fields.append(LuaDictField(field_name, field_desc))
 
     def visit_Return(self, node):
         self.visit(node.values)
