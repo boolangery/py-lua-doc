@@ -152,6 +152,12 @@ class LuaDocParser:
 
             lua_data.constant = self._constant
 
+        # pending class
+        if self._pending_class:
+            lua_class: LuaClass = self._pending_class[-1]
+            lua_class.desc = '\n'.join(self._pending_str)
+            lua_class.usage = '\n'.join(self._usage_str)
+
         # handle pending doc_nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
             # methods
