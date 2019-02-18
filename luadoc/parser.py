@@ -654,6 +654,9 @@ class TreeVisitor:
             if isinstance(first_target, nodes.Name):
                 ldoc_node.name_in_source = first_target.id
 
+        if ldoc_node.name_in_source in self._class_map:
+            logging.warning("Overriding class " + ldoc_node.name_in_source)
+
         self._class_map[ldoc_node.name_in_source] = ldoc_node
 
     def _add_function(self, ldoc_node: LuaFunction, ast_node: Function or Assign):
