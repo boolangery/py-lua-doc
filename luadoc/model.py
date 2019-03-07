@@ -199,6 +199,7 @@ class LuaClass(LuaNode):
         self.name: str = name
         self.name_in_source: str = name_in_source
         self.methods: LuaFunction = []
+        self.short_desc: str = ''
         self.desc: str = ''
         self.usage: str = ''
         self.inherits_from: List[str] = []  # a list of class.name

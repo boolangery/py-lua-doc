@@ -155,7 +155,9 @@ class LuaDocParser:
         # pending class
         if self._pending_class:
             lua_class: LuaClass = self._pending_class[-1]
-            lua_class.desc = '\n'.join(self._pending_str)
+            short_desc, long_desc = self._get_short_desc_and_desc()
+            lua_class.short_desc = short_desc
+            lua_class.desc = long_desc
             lua_class.usage = '\n'.join(self._usage_str)
 
         # handle pending doc_nodes

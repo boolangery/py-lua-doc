@@ -5,7 +5,9 @@
 local _M = {}
 
 ---- a useful class.
---- @type Bonzo
+--- a long desc on
+--- several lines
+--- @class Bonzo
 
 _M.Bonzo = class()
 

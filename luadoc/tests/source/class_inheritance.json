@@ -5,6 +5,7 @@
             "name": "Transport",
             "name_in_source": "Transport",
             "methods": [],
+            "short_desc": "",
             "desc": "",
             "usage": "",
             "inherits_from": [],
@@ -14,6 +15,7 @@
             "name": "Car",
             "name_in_source": "Car",
             "methods": [],
+            "short_desc": "",
             "desc": "",
             "usage": "",
             "inherits_from": [

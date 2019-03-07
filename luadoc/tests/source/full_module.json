@@ -29,6 +29,7 @@
                     "visibility": "public"
                 }
             ],
+            "short_desc": "",
             "desc": "",
             "usage": "",
             "inherits_from": [],
