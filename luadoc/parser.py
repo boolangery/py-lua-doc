@@ -592,7 +592,7 @@ class TreeVisitor:
     def __init__(self, doc_options: DocOptions, file_path: str):
         self._doc_options = doc_options
         self.parser = LuaDocParser(self._doc_options)
-        self.file_name = os.path.basename(file_path)
+        self.file_path = file_path
 
         self._class_map = {}
         self._function_list = []
@@ -627,7 +627,7 @@ class TreeVisitor:
         else:
             model: LuaModule = LuaModule('unknown')
 
-        model.filename = self.file_name
+        model.file_path = self.file_path
 
         if model.is_class_mod:
             if len(self._class_map) != 1:
@@ -661,7 +661,7 @@ class TreeVisitor:
 
         self._class_map[ldoc_node.name_in_source] = ldoc_node
 
-    def _add_function(self, ldoc_node: LuaFunction, ast_node: Function or Assign):
+    def _add_function(self, ldoc_node: LuaFunction, ast_node: Function or Assign or Method):
         """ Called when a LuaFunction is added.
             Check if informations must be added directly from source code.
             Add the function in pending list or in a class.
@@ -675,6 +675,10 @@ class TreeVisitor:
 
         # check consistency
         self._check_function_args(ldoc_node, ast_node)
+
+        # start, stop character offset
+        ldoc_node.start_char = ast_node.start_char
+        ldoc_node.stop_char = ast_node.stop_char
 
         if isinstance(ast_node, Method):
             # try to register this function in a class

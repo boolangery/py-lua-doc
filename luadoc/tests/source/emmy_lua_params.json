@@ -1,5 +1,5 @@
 {
-    "filename": "",
+    "file_path": "",
     "classes": [],
     "functions": [
         {
@@ -33,7 +33,9 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": false,
-            "visibility": "public"
+            "visibility": "public",
+            "start_char": 68,
+            "stop_char": 100
         }
     ],
     "data": [],

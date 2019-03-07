@@ -1,5 +1,5 @@
 {
-    "filename": "",
+    "file_path": "",
     "classes": [
         {
             "name": "Bonzo",
@@ -16,7 +16,9 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public"
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
                 },
                 {
                     "name": "__tostring",
@@ -29,7 +31,9 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public"
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
                 }
             ],
             "short_desc": "a useful class.",

@@ -181,6 +181,8 @@ class LuaFunction(LuaNode):
         self.is_deprecated = False
         self.is_static = False
         self.visibility = LuaVisibility.PUBLIC
+        self.start_char: int = 0  # character offset
+        self.stop_char: int = 0  # character offset
 
 
 class LuaClassField(LuaNode):
@@ -210,7 +212,7 @@ class LuaModule(LuaNode):
     def __init__(self, name: str):
         LuaNode.__init__(self)
         # list of LuaStatement
-        self.filename: str = ""
+        self.file_path: str = ""
         self.classes: List[LuaTypeCallable] = []
         self.functions: List[LuaFunction] = []
         self.data: List[LuaData] = []

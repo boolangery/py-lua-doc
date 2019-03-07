@@ -1,5 +1,5 @@
 {
-    "filename": "",
+    "file_path": "",
     "classes": [
         {
             "name": "pl.List",
@@ -26,7 +26,9 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public"
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
                 }
             ],
             "short_desc": "",
@@ -65,7 +67,9 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": true,
-            "visibility": "public"
+            "visibility": "public",
+            "start_char": 204,
+            "stop_char": 234
         },
         {
             "name": "isdigit",
@@ -95,7 +99,9 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": true,
-            "visibility": "public"
+            "visibility": "public",
+            "start_char": 318,
+            "stop_char": 348
         }
     ],
     "data": [],
