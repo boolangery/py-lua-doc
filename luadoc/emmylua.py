@@ -5,7 +5,7 @@ from typing import List
 
 EMMY_LUA_TYPE_GRAMMAR = Grammar(
     """
-    emmy_type_desc = emmy_type_or (_ "," _ emmy_type_or)* "@"? desc?
+    emmy_type_desc = _ emmy_type_or (_ "," _ emmy_type_or)* "@"? desc?
     emmy_type_or   = emmy_type _ ("|" _ emmy_type _)*
     emmy_type      = func / table / array / type_id
 
