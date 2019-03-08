@@ -36,8 +36,10 @@ class LuaDocParser:
     DOC_CLASS_RE = re.compile(r'^([\w.]+)(?:\s*:\s*([\w.]+(?:\s*,\s*[\w.]+)*))?\s*@?(.*)$')
     PARAM_RE = re.compile(r'^(\w+) *([\w+|]+) *(.*)')
 
-    def __init__(self, options: DocOptions):
+    def __init__(self, options: DocOptions, file_path: str):
         self._start_symbol: str = options.comment_prefix
+        self.file_path = file_path
+
         # list of string with no tag
         self._pending_str: List[str] = []
         self._pending_param: List[LuaParam] = []
@@ -133,7 +135,7 @@ class LuaDocParser:
 
         if self._exported:
             if (isinstance(ast_node, LocalFunction) or
-                    isinstance(ast_node, Function)) and not self._pending_function:
+                isinstance(ast_node, Function)) and not self._pending_function:
                 function_name = astutils.get_identifier(ast_node)
                 short_desc, desc = self._get_short_desc_and_desc()
                 func = LuaFunction(name=function_name, short_desc=short_desc, desc=desc)
@@ -278,7 +280,7 @@ class LuaDocParser:
 
             return main_class
         else:
-            logging.error("invalid @class tag: @class %s", params)
+            self._report_error(ast_node, "invalid @class tag: @class %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_usage(self, params: str, ast_node: Node):
@@ -304,7 +306,7 @@ class LuaDocParser:
             model, desc = emmylua.parse_param_field(params)
             self._pending_overload.append(model)
         except Exception as e:
-            logging.error("invalid @overload field: @overload %s", params)
+            self._report_error(ast_node, "invalid @overload field: @overload %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_class_mod(self, params: str, ast_node: Node) -> LuaModule:
@@ -333,7 +335,7 @@ class LuaDocParser:
             raise Exception("invalid visibility string " + string)
 
     # noinspection PyUnusedLocal
-    def _parse_tparam(self, params: str, astnode: Node, is_opt: bool = False, default_value: str = ""):
+    def _parse_tparam(self, params: str, ast_node: Node, is_opt: bool = False, default_value: str = ""):
         parts = params.split()
 
         if len(parts) > 2:
@@ -350,7 +352,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         else:
-            logging.error("invalid @tparam tag: @tparam %s", params)
+            self._report_error(ast_node, "invalid @tparam tag: @tparam %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_tparam_opt_re(self, params: str, ast_node: Node, match):
@@ -367,7 +369,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         else:
-            logging.error("invalid @param tag: @param %s", params)
+            self._report_error(ast_node, "invalid @param tag: @param %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_param(self, params: str, ast_node: Node):
@@ -387,7 +389,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         except Exception:
-            logging.error("invalid @param tag: @param %s", params)
+            self._report_error(ast_node, "invalid @param tag: @param %s", params)
 
     def _parse_string_param(self, params: str, ast_node: Node):
         self._parse_tparam("string " + params, ast_node)
@@ -411,7 +413,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            logging.error("invalid @treturn tag: @treturn %s", params)
+            self._report_error(ast_node, "invalid @treturn tag: @treturn %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_type(self, params: str, ast_node: Node):
@@ -428,7 +430,7 @@ class LuaDocParser:
             self._pending_data.append(lua_data)
             return lua_data
         except Exception as e:
-            logging.error("invalid @type tag: @type %s", params)
+            self._report_error(ast_node, "invalid @type tag: @type %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_return(self, params: str, ast_node: Node):
@@ -445,7 +447,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(param)
         else:
-            logging.error("invalid @return tag: @return %s", params)
+            self._report_error(ast_node, "invalid @return tag: @return %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_emmy_lua_return(self, params: str, ast_node: Node):
@@ -460,7 +462,7 @@ class LuaDocParser:
             else:
                 self._pending_return.append(lua_return)
         except Exception:
-            logging.error("invalid @return tag: @return %s", params)
+            self._report_error(ast_node, "invalid @return tag: @return %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_virtual(self, params: str, ast_node: Node):
@@ -482,7 +484,7 @@ class LuaDocParser:
             else:
                 self._pending_param.append(param)
         except Exception:
-            logging.error("invalid @param tag: @param %s", params)
+            self._report_error(ast_node, "invalid @param tag: @param %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_abstract(self, params: str, ast_node: Node):
@@ -512,7 +514,7 @@ class LuaDocParser:
             parts = params.split(' ', 2)  # split visibility and field name
 
             if len(parts) < 3:
-                logging.error("invalid @field tag: @field %s", params)
+                self._report_error(ast_node, "invalid @field tag: @field %s", params)
                 return
 
             field_visibility: LuaVisibility = self._parse_visibility(parts[0])
@@ -529,7 +531,7 @@ class LuaDocParser:
 
             return field
         except Exception:
-            logging.error("invalid @field tag: @field %s", params)
+            self._report_error(ast_node, "invalid @field tag: @field %s", params)
 
     # noinspection PyMethodMayBeStatic
     def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction:
@@ -541,7 +543,7 @@ class LuaDocParser:
         if match.group(1):  # function name provided
             return LuaFunction(match.group(1))
         else:
-            logging.error("invalid @function tag: @function %s", params)
+            self._report_error("invalid @function tag: @function %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_private(self, params: str, ast_node: Node):
@@ -556,6 +558,26 @@ class LuaDocParser:
             self._pending_function[-1].visibility = LuaVisibility.PROTECTED
         else:
             self._pending_qualifiers.append(LuaProtectedQualifier())
+
+    def _report_error(self, ast_node: Node, message: str, *args, **kargs):
+        report_error(self.file_path, ast_node, message, *args, **kargs)
+
+
+def report_error(filepath: str, ast_node: Node, message: str, *args, **kwargs) -> None:
+    """ Enhance error message by prepending filename and line number"""
+    try:
+        line_number = get_ast_node_line(ast_node, filepath)
+        logging.error(filepath + ": l." + str(line_number) + ": " + message, *args, **kwargs)
+    except:
+        logging.error(filepath + ": l." + message, *args, **kwargs)
+
+
+def get_ast_node_line(ast_node: Node, file_path: str):
+    """ retrieve the line number of an ast node using char offset """
+    file = open(file_path, "r")
+    line_number = file.read(ast_node.start_char).count('\n') + 1
+    file.close()
+    return line_number
 
 
 def read_index(index: nodes.Index) -> (str, str):
@@ -591,7 +613,7 @@ def get_lua_function_name(node: Function):
 class TreeVisitor:
     def __init__(self, doc_options: DocOptions, file_path: str):
         self._doc_options = doc_options
-        self.parser = LuaDocParser(self._doc_options)
+        self.parser = LuaDocParser(self._doc_options, file_path)
         self.file_path = file_path
 
         self._class_map = {}
@@ -645,6 +667,9 @@ class TreeVisitor:
 
         model.functions.extend(self._function_list)
         return model
+
+    def _report_error(self, ast_node: Node, message: str, *args, **kargs):
+        report_error(self.file_path, ast_node, message, *args, **kargs)
 
     # ####################################################################### #
     # Sorting and adding custom data from ast into Ldoc Nodes                 #
@@ -767,15 +792,15 @@ class TreeVisitor:
         if isinstance(func_ast_node, Function):
             # only check if there are too many documented node and consistency
             if len(func_doc_node.params) > len(func_ast_node.args):
-                logging.error('function: "%s": too many documented params: %s', func_doc_node.name,
-                              ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]]))
+                self._report_error(func_ast_node, 'function: "%s": too many documented params: %s', func_doc_node.name,
+                             ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]]))
 
             args_map = zip(func_doc_node.params, func_ast_node.args)
 
             for doc, ast_node in args_map:
                 if type(ast_node) != Varargs:
                     if doc.name != ast_node.id:
-                        logging.error('function: "%s": doc param found "%s", expected "%s"',
+                        self._report_error(func_ast_node, 'function: "%s": doc param found "%s", expected "%s"',
                                       func_doc_node.name, doc.name, ast_node.id)
 
     # noinspection PyMethodMayBeStatic
