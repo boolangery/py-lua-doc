@@ -815,6 +815,7 @@ class TreeVisitor:
     # Root Nodes                                                              #
     # ####################################################################### #
     def visit_Chunk(self, node: nodes.Chunk):
+        self._process_ldoc(node)
         self.visit(node.body)
 
     def visit_Block(self, node):
