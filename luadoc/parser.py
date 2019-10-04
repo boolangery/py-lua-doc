@@ -536,12 +536,13 @@ class LuaDocParser:
     # noinspection PyMethodMayBeStatic
     def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction:
         match = LuaDocParser.FUNCTION_RE.search(params)
+        short_desc, long_desc = self._get_short_desc_and_desc()
 
         if match is None:  # empty function name
             # try to deduce it from ast node
-            return LuaFunction(get_lua_function_name(ast_node))
+            return LuaFunction(get_lua_function_name(ast_node), short_desc, long_desc)
         if match.group(1):  # function name provided
-            return LuaFunction(match.group(1))
+            return LuaFunction(match.group(1), short_desc, long_desc)
         else:
             self._report_error("invalid @function tag: @function %s", params)
 

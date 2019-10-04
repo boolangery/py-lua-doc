@@ -1,0 +1,27 @@
+{
+    "file_path": "",
+    "classes": [],
+    "functions": [
+        {
+            "name": "report_error",
+            "short_desc": "Report a script error",
+            "desc": "<more info>",
+            "params": [],
+            "returns": [],
+            "usage": "",
+            "is_virtual": false,
+            "is_abstract": false,
+            "is_deprecated": false,
+            "is_static": false,
+            "visibility": "public",
+            "start_char": null,
+            "stop_char": null
+        }
+    ],
+    "data": [],
+    "name": "our_module",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": ""
+}

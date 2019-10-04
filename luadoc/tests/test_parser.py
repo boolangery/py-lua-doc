@@ -45,3 +45,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_export_value(self):
         self.make_test_from_sources("export_value")
+
+    def test_explicit_function(self):
+        self.make_test_from_sources("explicit_function")
