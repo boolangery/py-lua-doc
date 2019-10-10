@@ -1,5 +1,9 @@
 py-lua-doc
 ----------
+[![travis](https://travis-ci.org/boolangery/py-lua-doc.svg?branch=master)](https://travis-ci.org/boolangery/py-lua-doc)
+[![Pypi](https://img.shields.io/pypi/v/luadoc.svg)](https://pypi.python.org/pypi/luadoc/)
+[![Versions](https://img.shields.io/pypi/pyversions/luadoc.svg)](https://pypi.python.org/pypi/luadoc/)
+    
 
 A Lua documentation extraction tool written in Python that support emmy-lua and 
 ldoc doc-comment.
