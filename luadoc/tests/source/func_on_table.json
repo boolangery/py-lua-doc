@@ -1,0 +1,75 @@
+{
+    "file_path": "",
+    "classes": [
+        {
+            "name": "Car",
+            "name_in_source": "Car",
+            "methods": [
+                {
+                    "name": "get_speed",
+                    "short_desc": "A function to measure the speed of the car",
+                    "desc": "Long desc",
+                    "params": [],
+                    "returns": [
+                        {
+                            "desc": "Speed of the car in kph",
+                            "type": {
+                                "id": "number"
+                            }
+                        }
+                    ],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
+                },
+                {
+                    "name": "static_helper",
+                    "short_desc": "Long desc",
+                    "desc": "",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": true,
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
+                },
+                {
+                    "name": "start",
+                    "short_desc": "Start the engine",
+                    "desc": "",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public",
+                    "start_char": 0,
+                    "stop_char": 0
+                }
+            ],
+            "short_desc": "",
+            "desc": "",
+            "usage": "",
+            "inherits_from": [],
+            "fields": []
+        }
+    ],
+    "functions": [],
+    "data": [],
+    "name": "unknown",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": ""
+}

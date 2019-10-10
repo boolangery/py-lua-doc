@@ -30,7 +30,7 @@ class LuaDocParser:
     """ Lua doc style parser
     """
 
-    FUNCTION_RE = re.compile(r'^(\w+)')
+    FUNCTION_RE = re.compile(r'^(\w+(:|.)\w+)')
     # match: MY_TYPE: PARENT_TYPE @comment
     # match: MY_TYPE: PARENT_TYPE, TYPE2 comment
     DOC_CLASS_RE = re.compile(r'^([\w.]+)(?:\s*:\s*([\w.]+(?:\s*,\s*[\w.]+)*))?\s*@?(.*)$')
@@ -161,6 +161,11 @@ class LuaDocParser:
             lua_class.short_desc = short_desc
             lua_class.desc = long_desc
             lua_class.usage = '\n'.join(self._usage_str)
+
+        if self._pending_function and self._pending_str:
+            short_desc, long_desc = self._get_short_desc_and_desc()
+            self._pending_function[-1].short_desc = short_desc
+            self._pending_function[-1].desc = long_desc
 
         # handle pending doc_nodes
         if self._pending_param or self._pending_return or self._pending_qualifiers:
@@ -535,6 +540,9 @@ class LuaDocParser:
 
     # noinspection PyMethodMayBeStatic
     def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction:
+        """ Function name can describe a method or a static method on a class.
+            For example: getSpeed, Car:getSpeed, Car.getMaxSpeed
+        """
         match = LuaDocParser.FUNCTION_RE.search(params)
         short_desc, long_desc = self._get_short_desc_and_desc()
 
@@ -542,7 +550,17 @@ class LuaDocParser:
             # try to deduce it from ast node
             return LuaFunction(get_lua_function_name(ast_node), short_desc, long_desc)
         if match.group(1):  # function name provided
-            return LuaFunction(match.group(1), short_desc, long_desc)
+            name = match.group(1)
+            if ":" in name or "." in name:  # method
+                parts = re.split('[:.]', name)
+                lua_class = LuaClass(parts[0])
+                method = LuaFunction(parts[1])
+                method.is_static = "." in name
+                lua_class.methods.append(method)
+                self._pending_function.append(method)
+                return lua_class
+            else:
+                return LuaFunction(match.group(1), short_desc, long_desc)
         else:
             self._report_error("invalid @function tag: @function %s", params)
 
@@ -675,17 +693,23 @@ class TreeVisitor:
     # ####################################################################### #
     # Sorting and adding custom data from ast into Ldoc Nodes                 #
     # ####################################################################### #
-    def _add_class(self, ldoc_node, ast_node):
+    def _add_class(self, ldoc_node: LuaClass, ast_node):
         # try to extract class name in source in case of assignment
         if isinstance(ast_node, Assign) and len(ast_node.targets) == 1:
             first_target: nodes.Expression = ast_node.targets[0]
             if isinstance(first_target, nodes.Name):
                 ldoc_node.name_in_source = first_target.id
+        if ldoc_node.name_in_source == "":
+            ldoc_node.name_in_source = ldoc_node.name
 
-        if ldoc_node.name_in_source in self._class_map:
-            logging.warning("Overriding class " + ldoc_node.name_in_source)
-
-        self._class_map[ldoc_node.name_in_source] = ldoc_node
+        if ldoc_node.name in self._class_map:
+            # class already exists, merge it into existing one
+            cls: LuaClass = self._class_map[ldoc_node.name_in_source]
+            cls.methods.extend(ldoc_node.methods)
+            cls.fields.extend(ldoc_node.fields)
+            # logging.warning("Overriding class " + ldoc_node.name_in_source)
+        else:
+            self._class_map[ldoc_node.name_in_source] = ldoc_node
 
     def _add_function(self, ldoc_node: LuaFunction, ast_node: Function or Assign or Method):
         """ Called when a LuaFunction is added.

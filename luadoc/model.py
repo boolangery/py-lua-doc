@@ -200,7 +200,7 @@ class LuaClass(LuaNode):
         LuaNode.__init__(self)
         self.name: str = name
         self.name_in_source: str = name_in_source
-        self.methods: LuaFunction = []
+        self.methods: List[LuaFunction] = []
         self.short_desc: str = ''
         self.desc: str = ''
         self.usage: str = ''

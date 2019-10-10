@@ -19,6 +19,7 @@ class ParserTestCase(unittest.TestCase):
 
         module = DocParser().build_module_doc_model(lua_source, "")
         json_doc_tree = to_pretty_json(module)
+        print(json_doc_tree)
 
         lua_file.close()
         tree_file.close()
@@ -48,3 +49,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_explicit_function(self):
         self.make_test_from_sources("explicit_function")
+
+    def test_func_on_table(self):
+        self.make_test_from_sources("func_on_table")
