@@ -1,0 +1,6 @@
+.idea/
+dist/
+luadoc.egg-info/
+luadoc/__pycache__/
+luadoc/tests/__pycache__/
+venv/
