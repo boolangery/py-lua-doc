@@ -1,4 +1,3 @@
-import os
 import re
 import logging
 from luaparser import ast
@@ -328,7 +327,7 @@ class LuaDocParser:
         return module
 
     # noinspection PyUnusedLocal
-    def _parse_constant(self, params: str, ast_node: Node) -> LuaModule:
+    def _parse_constant(self, params: str, ast_node: Node):
         self._exported = True  # @constant trigger @export
         self._constant = True
 
@@ -539,7 +538,7 @@ class LuaDocParser:
             self._report_error(ast_node, "invalid @field tag: @field %s", params)
 
     # noinspection PyMethodMayBeStatic
-    def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction:
+    def _parse_function(self, params: str, ast_node: nodes.Function) -> LuaFunction or LuaClass:
         """ Function name can describe a method or a static method on a class.
             For example: getSpeed, Car:getSpeed, Car.getMaxSpeed
         """
@@ -562,7 +561,7 @@ class LuaDocParser:
             else:
                 return LuaFunction(match.group(1), short_desc, long_desc)
         else:
-            self._report_error("invalid @function tag: @function %s", params)
+            self._report_error(ast_node, "invalid @function tag: @function %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_private(self, params: str, ast_node: Node):
@@ -637,7 +636,7 @@ class TreeVisitor:
 
         self._class_map = {}
         self._function_list = []
-        self._module: LuaModule = None
+        self._module: Optional[LuaModule] = None
         self._type_handler = {
             LuaClass: self._add_class,
             LuaFunction: self._add_function,
@@ -696,7 +695,7 @@ class TreeVisitor:
     def _add_class(self, ldoc_node: LuaClass, ast_node):
         # try to extract class name in source in case of assignment
         if isinstance(ast_node, Assign) and len(ast_node.targets) == 1:
-            first_target: nodes.Expression = ast_node.targets[0]
+            first_target: nodes.Expression = cast(Assign, ast_node).targets[0]
             if isinstance(first_target, nodes.Name):
                 ldoc_node.name_in_source = first_target.id
         if ldoc_node.name_in_source == "":
@@ -732,7 +731,7 @@ class TreeVisitor:
 
         if isinstance(ast_node, Method):
             # try to register this function in a class
-            class_name = ast_node.source.id
+            class_name = cast(Method, ast_node).source.id
 
             if class_name in self._class_map:
                 self._class_map[class_name].methods.append(ldoc_node)
@@ -818,7 +817,7 @@ class TreeVisitor:
             # only check if there are too many documented node and consistency
             if len(func_doc_node.params) > len(func_ast_node.args):
                 self._report_error(func_ast_node, 'function: "%s": too many documented params: %s', func_doc_node.name,
-                             ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]]))
+                                   ', '.join([p.name for p in func_doc_node.params[len(func_ast_node.args):]]))
 
             args_map = zip(func_doc_node.params, func_ast_node.args)
 
@@ -826,7 +825,7 @@ class TreeVisitor:
                 if type(ast_node) != Varargs:
                     if doc.name != ast_node.id:
                         self._report_error(func_ast_node, 'function: "%s": doc param found "%s", expected "%s"',
-                                      func_doc_node.name, doc.name, ast_node.id)
+                                           func_doc_node.name, doc.name, ast_node.id)
 
     # noinspection PyMethodMayBeStatic
     def _check_usage_field(self, usage: str):

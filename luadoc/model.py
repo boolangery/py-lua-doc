@@ -1,6 +1,5 @@
-from enum import Enum
 from typing import List
-import json
+from enum import Enum
 
 
 class LuaNode:
@@ -33,13 +32,10 @@ LuaTypes_str = dict([
 ])
 
 
-class LuaVisibility:
+class LuaVisibility(str, Enum):
     PUBLIC = "public"
     PROTECTED = "protected"
     PRIVATE = "private"
-
-    def to_json(self):
-        return self.value
 
 
 LuaVisibility_from_str = dict([
@@ -119,7 +115,7 @@ class LuaTypeDict(LuaType):
 
 
 class LuaTypeCallable(LuaType):
-    def __init__(self, arg_types: List[LuaType], return_types: List[LuaType], arg_names: List[str] = []):
+    def __init__(self, arg_types: List[LuaType], return_types: List[LuaType], arg_names: List[str] = None):
         LuaType.__init__(self, "callable")
         self.arg_types = arg_types
         self.arg_names = arg_names
@@ -256,7 +252,6 @@ class LuaValue(LuaData):
         LuaData.__init__(self, name)
         self.type = lua_type
         self.value: any = None
-
 
     def to_json(self):
         return {
