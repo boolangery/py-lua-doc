@@ -23,6 +23,13 @@ $ pip3 install luadoc
 
 It will install the shell command 'luadoc'.
 
+How to generate documentation ?
+-------------------------------
+
+This project is part of a [Sphinx](http://www.sphinx-doc.org/en/master/) documentation plugin: [sphinx-lua](https://github.com/boolangery/sphinx-lua)
+
+
+
 
 Node Structure
 --------------
