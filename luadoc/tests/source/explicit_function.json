@@ -3,6 +3,8 @@
     "classes": [],
     "functions": [
         {
+            "start_char": 0,
+            "stop_char": 0,
             "name": "report_error",
             "short_desc": "Report a script error",
             "desc": "<more info>",
@@ -13,9 +15,7 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": false,
-            "visibility": "public",
-            "start_char": null,
-            "stop_char": null
+            "visibility": "public"
         }
     ],
     "data": [],

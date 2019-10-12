@@ -6,6 +6,8 @@
             "name_in_source": "Bonzo",
             "methods": [
                 {
+                    "start_char": 270,
+                    "stop_char": 294,
                     "name": "one",
                     "short_desc": "a method.",
                     "desc": "function one; reference to @{one.md.classes|documentation}",
@@ -16,11 +18,11 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 },
                 {
+                    "start_char": 338,
+                    "stop_char": 369,
                     "name": "__tostring",
                     "short_desc": "a metamethod",
                     "desc": "function __tostring",
@@ -31,9 +33,7 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 }
             ],
             "short_desc": "a useful class.",

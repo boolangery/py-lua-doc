@@ -6,6 +6,8 @@
             "name_in_source": "Car",
             "methods": [
                 {
+                    "start_char": 0,
+                    "stop_char": 0,
                     "name": "get_speed",
                     "short_desc": "A function to measure the speed of the car",
                     "desc": "Long desc",
@@ -23,11 +25,11 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 },
                 {
+                    "start_char": 0,
+                    "stop_char": 0,
                     "name": "static_helper",
                     "short_desc": "Long desc",
                     "desc": "",
@@ -38,11 +40,11 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": true,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 },
                 {
+                    "start_char": 321,
+                    "stop_char": 344,
                     "name": "start",
                     "short_desc": "Start the engine",
                     "desc": "",
@@ -53,9 +55,7 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 }
             ],
             "short_desc": "",

@@ -6,6 +6,8 @@
             "name_in_source": "",
             "methods": [
                 {
+                    "start_char": 92,
+                    "stop_char": 126,
                     "name": "new",
                     "short_desc": "",
                     "desc": "",
@@ -26,9 +28,7 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 92,
-                    "stop_char": 126
+                    "visibility": "public"
                 }
             ],
             "short_desc": "",

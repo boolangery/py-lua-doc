@@ -3,6 +3,8 @@
     "classes": [],
     "functions": [
         {
+            "start_char": 68,
+            "stop_char": 100,
             "name": "setCar",
             "short_desc": "",
             "desc": "",
@@ -33,9 +35,7 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": false,
-            "visibility": "public",
-            "start_char": 68,
-            "stop_char": 100
+            "visibility": "public"
         }
     ],
     "data": [],

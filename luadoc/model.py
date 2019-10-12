@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, TypeVar
 from enum import Enum
+import luaparser.astnodes as nodes
 
 
 class LuaNode:
@@ -157,9 +158,21 @@ class LuaReturn(LuaNode):
         self.type = lua_type
 
 
-class LuaFunction(LuaNode):
-    def __init__(self, name: str, short_desc: str = '', desc: str = '', params=None, returns=None):
+class LuaSourceNode(LuaNode):
+    def __init__(self):
         LuaNode.__init__(self)
+        self.start_char: int = 0  # character offset
+        self.stop_char: int = 0  # character offset
+
+    def init(self, ast_node: nodes.Node):
+        self.start_char = ast_node.start_char or 0
+        self.stop_char = ast_node.stop_char or 0
+        return self
+
+
+class LuaFunction(LuaSourceNode):
+    def __init__(self, name: str, short_desc: str = '', desc: str = '', params=None, returns=None):
+        LuaSourceNode.__init__(self)
 
         if returns is None:
             returns = []
@@ -177,8 +190,6 @@ class LuaFunction(LuaNode):
         self.is_deprecated = False
         self.is_static = False
         self.visibility = LuaVisibility.PUBLIC
-        self.start_char: int = 0  # character offset
-        self.stop_char: int = 0  # character offset
 
 
 class LuaClassField(LuaNode):

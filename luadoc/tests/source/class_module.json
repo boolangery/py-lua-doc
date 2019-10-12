@@ -6,6 +6,8 @@
             "name_in_source": "",
             "methods": [
                 {
+                    "start_char": 63,
+                    "stop_char": 279,
                     "name": "create",
                     "short_desc": "",
                     "desc": "",
@@ -26,11 +28,11 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 },
                 {
+                    "start_char": 282,
+                    "stop_char": 358,
                     "name": "withdraw",
                     "short_desc": "",
                     "desc": "",
@@ -51,9 +53,7 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 }
             ],
             "short_desc": "",

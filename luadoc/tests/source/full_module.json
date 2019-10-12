@@ -6,6 +6,8 @@
             "name_in_source": "List",
             "methods": [
                 {
+                    "start_char": 79,
+                    "stop_char": 105,
                     "name": "new",
                     "short_desc": "",
                     "desc": "",
@@ -26,9 +28,7 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public",
-                    "start_char": 0,
-                    "stop_char": 0
+                    "visibility": "public"
                 }
             ],
             "short_desc": "",
@@ -40,6 +40,8 @@
     ],
     "functions": [
         {
+            "start_char": 204,
+            "stop_char": 234,
             "name": "isalpha",
             "short_desc": "does s only contain alphabetic characters?",
             "desc": "",
@@ -67,11 +69,11 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": true,
-            "visibility": "public",
-            "start_char": 204,
-            "stop_char": 234
+            "visibility": "public"
         },
         {
+            "start_char": 318,
+            "stop_char": 348,
             "name": "isdigit",
             "short_desc": "does s only contain digits?",
             "desc": "",
@@ -99,9 +101,7 @@
             "is_abstract": false,
             "is_deprecated": false,
             "is_static": true,
-            "visibility": "public",
-            "start_char": 318,
-            "stop_char": 348
+            "visibility": "public"
         }
     ],
     "data": [],

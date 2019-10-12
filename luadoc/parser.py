@@ -2,7 +2,6 @@ import re
 import logging
 from luaparser import ast
 from luaparser.astnodes import *
-import luaparser.astnodes as nodes
 from luadoc.model import *
 from typing import List, Dict, cast, Callable
 import luadoc.emmylua as emmylua
@@ -137,7 +136,7 @@ class LuaDocParser:
                 isinstance(ast_node, Function)) and not self._pending_function:
                 function_name = astutils.get_identifier(ast_node)
                 short_desc, desc = self._get_short_desc_and_desc()
-                func = LuaFunction(name=function_name, short_desc=short_desc, desc=desc)
+                func = LuaFunction(name=function_name, short_desc=short_desc, desc=desc).init(ast_node)
                 self._pending_function.append(func)
                 doc_nodes.append(func)
 
@@ -171,12 +170,12 @@ class LuaDocParser:
             # methods
             if type(ast_node) == Method:
                 short_desc, long_desc = self._get_short_desc_and_desc()
-                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
+                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return).init(ast_node))
 
             # Detect static method: a Function with an Index as name
             if type(ast_node) == Function:
                 short_desc, long_desc = self._get_short_desc_and_desc()
-                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return))
+                doc_nodes.append(LuaFunction('', short_desc, long_desc, [], self._pending_return).init(ast_node))
 
         # handle function pending elements
         if doc_nodes and type(doc_nodes[-1]) is LuaFunction:
@@ -553,13 +552,13 @@ class LuaDocParser:
             if ":" in name or "." in name:  # method
                 parts = re.split('[:.]', name)
                 lua_class = LuaClass(parts[0])
-                method = LuaFunction(parts[1])
+                method = LuaFunction(parts[1]).init(ast_node)
                 method.is_static = "." in name
                 lua_class.methods.append(method)
                 self._pending_function.append(method)
                 return lua_class
             else:
-                return LuaFunction(match.group(1), short_desc, long_desc)
+                return LuaFunction(match.group(1), short_desc, long_desc).init(ast_node)
         else:
             self._report_error(ast_node, "invalid @function tag: @function %s", params)
 
@@ -724,10 +723,6 @@ class TreeVisitor:
 
         # check consistency
         self._check_function_args(ldoc_node, ast_node)
-
-        # start, stop character offset
-        ldoc_node.start_char = ast_node.start_char
-        ldoc_node.stop_char = ast_node.stop_char
 
         if isinstance(ast_node, Method):
             # try to register this function in a class
@@ -948,7 +943,7 @@ class TreeVisitor:
                 if len(pending_str) > 1:
                     desc = ' '.join(pending_str[1:])
 
-                func_model = LuaFunction(node.name.id, short_desc, desc, [])
+                func_model = LuaFunction(node.name.id, short_desc, desc, []).init(node)
                 self._auto_param_from_meth_ast(func_model, node)
                 self._check_function_args(func_model, node)
 
