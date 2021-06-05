@@ -19,7 +19,7 @@ setup(
     download_url='https://github.com/boolangery/py-lua-doc/archive/' + ver_dic["__version__"] + '.tar.gz',
     author='Eliott Dumeix',
     author_email='eliott.dumeix@gmail.com',
-    license='MIT',
+    license='GNU',
     packages=['luadoc', 'luadoc.tests'],
     zip_safe=False,
     classifiers=[
