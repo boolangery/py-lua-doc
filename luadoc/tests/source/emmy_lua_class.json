@@ -1,0 +1,65 @@
+{
+    "file_path": "",
+    "classes": [
+        {
+            "name": "Request",
+            "name_in_source": "Account",
+            "methods": [
+                {
+                    "start_char": 157,
+                    "stop_char": 192,
+                    "name": "create",
+                    "short_desc": "",
+                    "desc": "",
+                    "params": [
+                        {
+                            "name": "balance",
+                            "desc": "",
+                            "type": {
+                                "id": "any"
+                            },
+                            "is_opt": false,
+                            "default_value": ""
+                        }
+                    ],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public"
+                }
+            ],
+            "short_desc": "",
+            "desc": "",
+            "usage": "",
+            "inherits_from": [],
+            "fields": [
+                {
+                    "name": "body",
+                    "desc": "The contents of the request",
+                    "type": {
+                        "id": "string"
+                    },
+                    "visibility": "public"
+                },
+                {
+                    "name": "headers",
+                    "desc": "Request headers",
+                    "type": {
+                        "id": "string"
+                    },
+                    "visibility": "private"
+                }
+            ]
+        }
+    ],
+    "functions": [],
+    "data": [],
+    "name": "unknown",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": ""
+}

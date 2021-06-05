@@ -335,7 +335,7 @@ class LuaDocParser:
         if string in LuaVisibility_from_str:
             return LuaVisibility_from_str[string]
         else:
-            raise Exception("invalid visibility string " + string)
+            raise ValueError("invalid visibility string " + string)
 
     # noinspection PyUnusedLocal
     def _parse_tparam(self, params: str, ast_node: Node, is_opt: bool = False, default_value: str = ""):
@@ -520,9 +520,15 @@ class LuaDocParser:
                 self._report_error(ast_node, "invalid @field tag: @field %s", params)
                 return
 
-            field_visibility: LuaVisibility = self._parse_visibility(parts[0])
-            field_name: str = parts[1]
-            field_type_desc: str = parts[2]
+            try:
+                field_visibility: LuaVisibility = self._parse_visibility(parts[0])
+                field_name: str = parts[1]
+                field_type_desc: str = parts[2]
+            except ValueError:  # no visibility specified
+                field_visibility = LuaVisibility.PUBLIC  # default visibility
+                field_name: str = parts[0]
+                field_type_desc: str = " ".join(parts[1:])
+
             doc_type, desc = emmylua.parse_param_field(field_type_desc)
             field = LuaClassField(name=field_name,
                                   desc=desc,
@@ -533,7 +539,7 @@ class LuaDocParser:
                 self._pending_class[-1].fields.append(field)
 
             return field
-        except Exception:
+        except Exception as e:
             self._report_error(ast_node, "invalid @field tag: @field %s", params)
 
     # noinspection PyMethodMayBeStatic

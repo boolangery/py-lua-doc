@@ -10,6 +10,10 @@ class ParserTestCase(unittest.TestCase):
     LUA_EXT: str = ".lua"
     JSON_EXT: str = ".json"
 
+    def setUp(self) -> None:
+        super().setUp()
+        self.maxDiff = None
+
     def make_test_from_sources(self, test_name: str):
         lua_file = open(os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.LUA_EXT), 'r')
         tree_file = open(os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.JSON_EXT), 'r')
@@ -52,3 +56,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_func_on_table(self):
         self.make_test_from_sources("func_on_table")
+
+    def test_emmy_lua_class(self):
+        self.make_test_from_sources("emmy_lua_class")
