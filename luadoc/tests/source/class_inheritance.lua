@@ -1,6 +1,6 @@
 
---- @class Transport my super class
+---@class Transport my super class
 local Transport = {}
 
---- @class Car:Transport a car
+---@class Car:Transport a car
 local Car = {}
