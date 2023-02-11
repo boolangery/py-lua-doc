@@ -3,8 +3,8 @@
     "classes": [],
     "functions": [
         {
-            "start_char": 0,
-            "stop_char": 0,
+            "start_char": 106,
+            "stop_char": 141,
             "name": "report_error",
             "short_desc": "Report a script error",
             "desc": "<more info>",

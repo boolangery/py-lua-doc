@@ -6,8 +6,8 @@
             "name_in_source": "Car",
             "methods": [
                 {
-                    "start_char": 0,
-                    "stop_char": 0,
+                    "start_char": 132,
+                    "stop_char": 166,
                     "name": "get_speed",
                     "short_desc": "A function to measure the speed of the car",
                     "desc": "Long desc",
@@ -28,8 +28,8 @@
                     "visibility": "public"
                 },
                 {
-                    "start_char": 0,
-                    "stop_char": 0,
+                    "start_char": 259,
+                    "stop_char": 297,
                     "name": "static_helper",
                     "short_desc": "Long desc",
                     "desc": "",

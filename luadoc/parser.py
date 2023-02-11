@@ -14,6 +14,7 @@ class DocOptions:
         self.comment_prefix = '---'
         self.emmy_lua_syntax = True
         self.private_prefix = "_"
+        self.encoding = "utf8"
 
 
 class SyntaxException(Exception):

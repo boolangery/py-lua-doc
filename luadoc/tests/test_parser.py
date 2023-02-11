@@ -15,8 +15,9 @@ class ParserTestCase(unittest.TestCase):
         self.maxDiff = None
 
     def make_test_from_sources(self, test_name: str):
+        tree_filepath = os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.JSON_EXT)
         lua_file = open(os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.LUA_EXT), 'r')
-        tree_file = open(os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.JSON_EXT), 'r')
+        tree_file = open(tree_filepath, 'r')
 
         lua_source = lua_file.read()
         exp_doc_tree = tree_file.read()
@@ -27,6 +28,10 @@ class ParserTestCase(unittest.TestCase):
 
         lua_file.close()
         tree_file.close()
+
+        if os.getenv("UPDATE_FILES"):
+            with open(tree_filepath, 'w') as f:
+                f.write(json_doc_tree)
 
         self.assertEqual(exp_doc_tree, json_doc_tree)
 

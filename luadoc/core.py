@@ -28,14 +28,14 @@ class Configuration:
 
 
 class FilesProcessor:
-    def __init__(self, jobs, doc_options):
+    def __init__(self, jobs, doc_options: DocOptions):
         self._jobs = jobs
-        self._doc_options = doc_options
+        self._doc_options: DocOptions = doc_options
 
     def _process_one(self, file_path):
         """Process one file.
         """
-        with open(file_path) as file:
+        with open(file_path, encoding=self._doc_options.encoding) as file:
             file_content = file.read()
 
         doc_parser = DocParser(self._doc_options)
