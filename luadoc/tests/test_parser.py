@@ -5,14 +5,11 @@ from luadoc.printers import to_pretty_json
 
 
 class ParserTestCase(unittest.TestCase):
+    maxDiff = None
     CURRENT_DIR: str = os.path.dirname(__file__)
     SOURCE_ROOT: str = os.path.join(CURRENT_DIR, "source")
     LUA_EXT: str = ".lua"
     JSON_EXT: str = ".json"
-
-    def setUp(self) -> None:
-        super().setUp()
-        self.maxDiff = None
 
     def make_test_from_sources(self, test_name: str):
         tree_filepath = os.path.join(ParserTestCase.SOURCE_ROOT, test_name + ParserTestCase.JSON_EXT)

@@ -930,7 +930,7 @@ class TreeVisitor:
     def visit_Method(self, node: Method):
         doc_nodes, pending_str = self._process_ldoc(node)
 
-        if type(node.source) == Name and type(node.name) == Name:
+        if isinstance(node.source, Name) and isinstance(node.name, Name):
             # auto-create class doc model
             if node.source.id not in self._class_map:
                 self._class_map[node.source.id] = LuaClass(node.source.id)
@@ -951,6 +951,7 @@ class TreeVisitor:
                     desc = ' '.join(pending_str[1:])
 
                 func_model = LuaFunction(node.name.id, short_desc, desc, []).init(node)
+                self._auto_private(func_model)
                 self._auto_param_from_meth_ast(func_model, node)
                 self._check_function_args(func_model, node)
 

@@ -6,8 +6,8 @@
             "name_in_source": "Bonzo",
             "methods": [
                 {
-                    "start_char": 270,
-                    "stop_char": 294,
+                    "start_char": 401,
+                    "stop_char": 425,
                     "name": "one",
                     "short_desc": "a method.",
                     "desc": "function one; reference to @{one.md.classes|documentation}",
@@ -21,8 +21,8 @@
                     "visibility": "public"
                 },
                 {
-                    "start_char": 338,
-                    "stop_char": 369,
+                    "start_char": 469,
+                    "stop_char": 500,
                     "name": "__tostring",
                     "short_desc": "a metamethod",
                     "desc": "function __tostring",
@@ -33,14 +33,46 @@
                     "is_abstract": false,
                     "is_deprecated": false,
                     "is_static": false,
-                    "visibility": "public"
+                    "visibility": "private"
+                },
+                {
+                    "start_char": 546,
+                    "stop_char": 648,
+                    "name": "_more_private",
+                    "short_desc": "Append the private field with `private`",
+                    "desc": "",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "private"
                 }
             ],
             "short_desc": "a useful class.",
             "desc": "a long desc on\nseveral lines",
             "usage": "",
             "inherits_from": [],
-            "fields": []
+            "fields": [
+                {
+                    "name": "some_public_field",
+                    "desc": "This field is private",
+                    "type": {
+                        "id": "string"
+                    },
+                    "visibility": "public"
+                },
+                {
+                    "name": "_some_private_field",
+                    "desc": "This field is private",
+                    "type": {
+                        "id": "string"
+                    },
+                    "visibility": "private"
+                }
+            ]
         }
     ],
     "functions": [],
