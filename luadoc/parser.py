@@ -246,7 +246,11 @@ class LuaDocParser:
 
     def _parse_comment(self, comment: str, ast_node: Node):
         if comment.startswith(self._start_symbol):
-            text = comment.lstrip(self._start_symbol + " ")
+            text = comment[len(self._start_symbol):]
+
+            if text.startswith(" "):
+                text = text[1:]
+
             parts = text.split(" ", 1)
             if parts:
                 if parts[0].startswith('@'):
