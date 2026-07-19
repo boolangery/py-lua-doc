@@ -34,7 +34,7 @@ setup(
         'Programming Language :: Python :: 3.6'
     ],
     install_requires=[
-        'luaparser>=3.2.1', 'parsimonious'
+        'luaparser>=4.0', 'parsimonious'
     ],
     entry_points={
         'console_scripts': [

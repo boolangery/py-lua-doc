@@ -6,8 +6,8 @@
             "name_in_source": "Bonzo",
             "methods": [
                 {
-                    "start_char": 401,
-                    "stop_char": 425,
+                    "start_char": 400,
+                    "stop_char": 424,
                     "name": "one",
                     "short_desc": "a method.",
                     "desc": "function one; reference to @{one.md.classes|documentation}",
@@ -21,8 +21,8 @@
                     "visibility": "public"
                 },
                 {
-                    "start_char": 469,
-                    "stop_char": 500,
+                    "start_char": 468,
+                    "stop_char": 499,
                     "name": "__tostring",
                     "short_desc": "a metamethod",
                     "desc": "function __tostring",
@@ -36,8 +36,8 @@
                     "visibility": "private"
                 },
                 {
-                    "start_char": 546,
-                    "stop_char": 648,
+                    "start_char": 545,
+                    "stop_char": 647,
                     "name": "_more_private",
                     "short_desc": "Append the private field with `private`",
                     "desc": "",
