@@ -10,7 +10,6 @@ local _M = {}
 --- @class Bonzo
 ---@field public some_public_field string This field is private
 ---@field private _some_private_field string This field is private
-
 _M.Bonzo = class()
 
 --- a method.
