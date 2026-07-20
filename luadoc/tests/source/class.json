@@ -51,7 +51,7 @@
                     "visibility": "private"
                 }
             ],
-            "short_desc": "a useful class.",
+            "short_desc": "- a useful class.",
             "desc": "a long desc on\nseveral lines",
             "usage": "",
             "inherits_from": [],
@@ -79,7 +79,7 @@
     "data": [],
     "name": "classes",
     "is_class_mod": false,
-    "short_desc": "",
+    "short_desc": "-------------------",
     "desc": "a module containing some classes.",
     "usage": ""
 }
