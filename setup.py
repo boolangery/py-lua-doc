@@ -18,6 +18,7 @@ setup(
     version=ver_dic["__version__"],
     description='A lua ldoc tool in Python !',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/boolangery/py-lua-doc',
     download_url='https://github.com/boolangery/py-lua-doc/archive/' + ver_dic["__version__"] + '.tar.gz',
     author='Eliott Dumeix',
