@@ -977,7 +977,7 @@ class TreeVisitor:
                 if len(pending_str) > 0:
                     short_desc = pending_str[0]
                 if len(pending_str) > 1:
-                    desc = ' '.join(pending_str[1:])
+                    desc = '\n'.join(pending_str[1:])
 
                 func_model = LuaFunction(node.name.id, short_desc, desc, []).init(node)
                 self._auto_private(func_model)

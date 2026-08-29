@@ -1,0 +1,39 @@
+{
+    "file_path": "",
+    "classes": [
+        {
+            "name": "Widget",
+            "name_in_source": "Widget",
+            "methods": [
+                {
+                    "start_char": 139,
+                    "stop_char": 166,
+                    "name": "render",
+                    "short_desc": "A short description.",
+                    "desc": "\nA longer description\nspanning several lines.",
+                    "params": [],
+                    "returns": [],
+                    "usage": "",
+                    "is_virtual": false,
+                    "is_abstract": false,
+                    "is_deprecated": false,
+                    "is_static": false,
+                    "visibility": "public"
+                }
+            ],
+            "short_desc": "",
+            "desc": "",
+            "usage": "",
+            "inherits_from": [],
+            "fields": []
+        }
+    ],
+    "functions": [],
+    "data": [],
+    "name": "unknown",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": "",
+    "aliases": []
+}
