@@ -70,3 +70,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_method_multiline_desc(self):
         self.make_test_from_sources("method_multiline_desc")
+
+    def test_global_function(self):
+        self.make_test_from_sources("global_function")

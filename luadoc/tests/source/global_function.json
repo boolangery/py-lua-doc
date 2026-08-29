@@ -1,0 +1,38 @@
+{
+    "file_path": "",
+    "classes": [],
+    "functions": [
+        {
+            "start_char": 40,
+            "stop_char": 63,
+            "name": "greet",
+            "short_desc": "Greet someone.",
+            "desc": "",
+            "params": [
+                {
+                    "name": "name",
+                    "desc": "",
+                    "type": {
+                        "id": "string"
+                    },
+                    "is_opt": false,
+                    "default_value": ""
+                }
+            ],
+            "returns": [],
+            "usage": "",
+            "is_virtual": false,
+            "is_abstract": false,
+            "is_deprecated": false,
+            "is_static": false,
+            "visibility": "public"
+        }
+    ],
+    "data": [],
+    "name": "unknown",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": "",
+    "aliases": []
+}

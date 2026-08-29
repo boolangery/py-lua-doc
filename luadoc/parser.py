@@ -778,6 +778,9 @@ class TreeVisitor:
                     self._class_map[class_name].methods.append(ldoc_node)
                 elif self._module and not self._module.is_class_mod:
                     self._module.functions.append(ldoc_node)
+            else:
+                # a plain global function: function foo() end
+                self._function_list.append(ldoc_node)
 
         else:
             self._function_list.append(ldoc_node)
