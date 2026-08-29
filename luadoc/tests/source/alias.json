@@ -1,0 +1,45 @@
+{
+    "file_path": "",
+    "classes": [],
+    "functions": [],
+    "data": [],
+    "name": "unknown",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": "",
+    "aliases": [
+        {
+            "name": "SourceFn",
+            "type": {
+                "id": "callable",
+                "arg_types": [
+                    {
+                        "id": "string"
+                    }
+                ],
+                "return_types": [
+                    {
+                        "id": "string"
+                    }
+                ]
+            },
+            "desc": ""
+        },
+        {
+            "name": "Mode",
+            "type": {
+                "id": "or",
+                "types": [
+                    {
+                        "id": "string"
+                    },
+                    {
+                        "id": "number"
+                    }
+                ]
+            },
+            "desc": ""
+        }
+    ]
+}

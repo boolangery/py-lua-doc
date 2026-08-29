@@ -58,6 +58,7 @@ class LuaDocParser:
         # install handlers
         self._handlers: DocTagHandler = {
             '@abstract': self._parse_abstract,
+            '@alias': self._parse_alias,
             '@class': self._parse_class,
             '@classmod': self._parse_class_mod,
             '@constant': self._parse_constant,
@@ -289,6 +290,23 @@ class LuaDocParser:
             return main_class
         else:
             self._report_error(ast_node, "invalid @class tag: @class %s", params)
+
+    # noinspection PyUnusedLocal
+    def _parse_alias(self, params: str, ast_node: Node):
+        """
+        --@alias NAME TYPE_EXPR[|OTHER_TYPE] [@comment]
+        """
+        # noinspection PyBroadException
+        try:
+            parts = params.split(' ', 1)
+            if len(parts) < 2:
+                self._report_error(ast_node, "invalid @alias tag: @alias %s", params)
+                return
+            name, type_expr = parts
+            doc_type, desc = emmylua.parse_param_field(type_expr)
+            return LuaAlias(name, doc_type, desc)
+        except Exception:
+            self._report_error(ast_node, "invalid @alias tag: @alias %s", params)
 
     # noinspection PyUnusedLocal
     def _parse_usage(self, params: str, ast_node: Node):
@@ -646,6 +664,7 @@ class TreeVisitor:
 
         self._class_map = {}
         self._function_list = []
+        self._alias_list: List[LuaAlias] = []
         self._module: Optional[LuaModule] = None
         self._type_handler = {
             LuaClass: self._add_class,
@@ -654,6 +673,7 @@ class TreeVisitor:
             LuaDict: self._add_dict,
             LuaData: self._add_data,
             LuaValue: self._add_data,
+            LuaAlias: self._add_alias,
         }
 
     def visit(self, node):
@@ -694,6 +714,7 @@ class TreeVisitor:
             model.classes.extend(self._class_map.values())
 
         model.functions.extend(self._function_list)
+        model.aliases.extend(self._alias_list)
         return model
 
     def _report_error(self, ast_node: Node, message: str, *args, **kargs):
@@ -791,6 +812,10 @@ class TreeVisitor:
     def _add_data(self, data: LuaData, ast_node):
         if self._module:
             self._module.data.append(data)
+
+    # noinspection PyUnusedLocal
+    def _add_alias(self, alias: LuaAlias, ast_node):
+        self._alias_list.append(alias)
 
     def _process_ldoc(self, ast_node):
         """Sort ldoc nodes by type in map"""

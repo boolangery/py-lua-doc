@@ -228,6 +228,16 @@ class LuaModule(LuaNode):
         self.short_desc: str = ''
         self.desc: str = ''
         self.usage: str = ''
+        self.aliases: List['LuaAlias'] = []
+
+
+class LuaAlias(LuaNode):
+    """A named alias for a type, declared with ``@alias name TYPE_EXPR``."""
+
+    def __init__(self, name: str, lua_type: LuaType, desc: str = ''):
+        self.name = name
+        self.type = lua_type
+        self.desc = desc
 
 
 class LuaData(LuaNode):

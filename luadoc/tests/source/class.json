@@ -81,5 +81,6 @@
     "is_class_mod": false,
     "short_desc": "-------------------",
     "desc": "a module containing some classes.",
-    "usage": ""
+    "usage": "",
+    "aliases": []
 }

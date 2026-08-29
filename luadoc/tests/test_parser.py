@@ -64,3 +64,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_module_string_value(self):
         self.make_test_from_sources("module_string_value")
+
+    def test_alias(self):
+        self.make_test_from_sources("alias")
