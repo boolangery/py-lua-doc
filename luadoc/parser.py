@@ -618,7 +618,7 @@ def read_index(index: nodes.Index) -> (str, str):
     if isinstance(index.idx, Name):
         idx = index.idx.id
     elif isinstance(index.idx, String):
-        idx = index.idx.s
+        idx = index.idx.raw
     if isinstance(index.value, Name):
         value = index.value.id
 

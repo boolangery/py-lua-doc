@@ -1,0 +1,25 @@
+{
+    "file_path": "",
+    "classes": [],
+    "functions": [],
+    "data": [
+        {
+            "value": {
+                "name": "foobar",
+                "short_desc": "",
+                "desc": "",
+                "visibility": "private",
+                "constant": false,
+                "type": {
+                    "id": "string"
+                },
+                "value": ""
+            }
+        }
+    ],
+    "name": "package",
+    "is_class_mod": false,
+    "short_desc": "",
+    "desc": "",
+    "usage": ""
+}

@@ -57,7 +57,7 @@ class IdentifierVisitor:
         self.identifier = node.id
 
     def visit_String(self, node: String):
-        self.identifier = node.s
+        self.identifier = node.raw
 
     def visit_Table(self, node):
         self.visit(node.fields)
@@ -134,7 +134,7 @@ class ValueVisitor:
         self.visit(node.idx)
 
     def visit_String(self, node: String):
-        self.value = node.s
+        self.value = node.raw
 
     def visit_Nil(self, node: Nil):
         self.value = None

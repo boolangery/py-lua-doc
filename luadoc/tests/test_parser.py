@@ -61,3 +61,6 @@ class ParserTestCase(unittest.TestCase):
 
     def test_emmy_lua_class(self):
         self.make_test_from_sources("emmy_lua_class")
+
+    def test_module_string_value(self):
+        self.make_test_from_sources("module_string_value")
